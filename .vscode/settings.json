@@ -1,0 +1,28 @@
+{
+    "terminal.integrated.env.osx": {
+        "PYTHONPATH": "${workspaceFolder}/src:${env:PYTHONPATH}"
+    },
+    "editor.tabSize": 4,
+    "editor.rulers": [
+        100
+    ],
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true,
+        "editor.formatOnType": true
+    },
+    "editor.codeActionsOnSave": {
+        "source.fixAll": "explicit",
+        "source.unusedImports": "never",
+        "source.fixall.pylance": "explicit",
+        "source.organizeImports": "explicit",
+        "isort.serverEnabled": "always"
+    },
+    "python.analysis.typeCheckingMode": "off",
+    "python.analysis.inlayHints.variableTypes": true,
+    "python.analysis.autoFormatStrings": true,
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.completeFunctionParens": true,
+    "python.analysis.inlayHints.functionReturnTypes": true,
+    "trailing-spaces.trimOnSave": true
+}
