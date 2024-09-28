@@ -1,0 +1,27 @@
+default_install_hook_types:
+  - pre-commit
+
+repos:
+  - repo: https://github.com/psf/black-pre-commit-mirror
+    rev: 24.4.0
+    hooks:
+    - id: black
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+    - id: isort
+      args: ["--profile", "black", "--filter-files"]
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+    - id: trailing-whitespace
+      exclude: &deployment_folder "(.serverless|eks|test)/"
+    - id: end-of-file-fixer
+      exclude: *deployment_folder
+    - id: check-added-large-files
+      exclude: *deployment_folder
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.6.0
+    hooks:
+    - id: ruff
+      args: ["--fix"]
