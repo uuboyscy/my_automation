@@ -122,14 +122,14 @@ def vgchartz_crawler(
     output_file_path = output_file_folder / output_file_name
     vgchartz_df.to_excel(output_file_path, index=False)
 
-    return str(output_file_path)
+    return output_file_path
 
 
 def send_email(
     receiver_email: str,
     subject: str,
     msg: str,
-    file_path: str | None = None,
+    file_path: str | Path | None = None,
 ) -> bool:
     """Send email with file attached."""
     # Create a multipart message
@@ -141,9 +141,9 @@ def send_email(
     # Add body to email
     message.attach(MIMEText(msg, "plain"))
 
-    if file_path:
+    if file_path_str := str(file_path):
         # Attach file
-        attachment = open(file_path, "rb")
+        attachment = open(file_path_str, "rb")
 
         # Instance of MIMEBase and named as part
         part = MIMEBase("application", "octet-stream")
@@ -153,7 +153,7 @@ def send_email(
         encoders.encode_base64(part)
 
         # Add header as key/value pair to attachment part
-        part.add_header("Content-Disposition", f"attachment; filename= {file_path}")
+        part.add_header("Content-Disposition", f"attachment; filename= {file_path_str}")
 
         # Attach the instance 'part' to 'message'
         message.attach(part)
@@ -185,7 +185,7 @@ def main() -> None:
 
             send_email(
                 GMAIL_USER_EMAIL,
-                file_path,
+                str(file_path),
                 "",
                 file_path,
             )
