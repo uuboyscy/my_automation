@@ -25,6 +25,7 @@ VGCHARTZ_REGION_LITERAL = Literal["Global", "USA", "Europe", "Japan"]
 VGCHARTZ_ENDING_LITERAL = Literal["Monthly", "Weekly"]
 VGCHARTZ_DEFAULT_REGION = "Global"
 VGCHARTZ_DEFAULT_ENDING = "Monthly"
+VGCHARTZ_OUTPUT_FILE_FOLDER = Path("./tmp/vgchartz")
 
 # Request configuration
 HEADERS_STR = """accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
@@ -110,17 +111,33 @@ def _t_vgchartz_json_to_df(vgchartz_json: dict) -> pd.DataFrame:
 def vgchartz_crawler(
     region: VGCHARTZ_REGION_LITERAL = VGCHARTZ_DEFAULT_REGION,
     ending: VGCHARTZ_ENDING_LITERAL = VGCHARTZ_DEFAULT_ENDING,
+    output_file_folder: Path = VGCHARTZ_OUTPUT_FILE_FOLDER,
 ) -> str:
     """Return file path."""
     vgchartz_html = _e_vgchartz_html(region=region, ending=ending)
     vgchartz_json = _t_vgchartz_html_to_json(vgchartz_html)
     vgchartz_df = _t_vgchartz_json_to_df(vgchartz_json)
 
-    output_file_folder = Path("./tmp/vgchartz")
     output_file_folder.mkdir(parents=True, exist_ok=True)
-    output_file_name = f"vgchartz_{region}_{ending}.xlsx"
+    output_file_name = f"{region}_{ending}.xlsx"
     output_file_path = output_file_folder / output_file_name
     vgchartz_df.to_excel(output_file_path, index=False)
+
+    return output_file_path
+
+
+def merge_multiple_excel_into_single_file(
+    file_path_list: list[Path],
+    output_file_path: Path = VGCHARTZ_OUTPUT_FILE_FOLDER / "merged_vgchartz.xlsx",
+) -> Path:
+    """Merge multiple Excel files into a single file with multiple sheets."""
+    output_file_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with pd.ExcelWriter(output_file_path) as writer:
+        for file_path in file_path_list:
+            df = pd.read_excel(file_path)
+            sheet_name = file_path.stem
+            df.to_excel(writer, sheet_name=sheet_name, index=False)
 
     return output_file_path
 
@@ -177,32 +194,36 @@ def send_email(
 
 
 def main() -> None:
+    excel_file_path_list = []
     for region in VGCHARTZ_REGION_LITERAL.__args__:
         for ending in VGCHARTZ_ENDING_LITERAL.__args__:
             file_path = vgchartz_crawler(region=region, ending=ending)
 
             print(file_path)
+            excel_file_path_list.append(file_path)
 
-            send_email(
-                GMAIL_USER_EMAIL,
-                str(file_path),
-                "",
-                file_path,
-            )
+    merged_excel_path = merge_multiple_excel_into_single_file(excel_file_path_list)
 
-            send_email(
-                os.getenv("RECEIVER_EMAIL_1"),
-                file_path,
-                "",
-                file_path,
-            )
+    send_email(
+        GMAIL_USER_EMAIL,
+        str(merged_excel_path),
+        "",
+        merged_excel_path,
+    )
 
-            send_email(
-                os.getenv("RECEIVER_EMAIL_2"),
-                file_path,
-                "",
-                file_path,
-            )
+    send_email(
+        os.getenv("RECEIVER_EMAIL_1"),
+        str(merged_excel_path),
+        "",
+        merged_excel_path,
+    )
+
+    send_email(
+        os.getenv("RECEIVER_EMAIL_2"),
+        str(merged_excel_path),
+        "",
+        merged_excel_path,
+    )
 
 
 if __name__ == "__main__":
