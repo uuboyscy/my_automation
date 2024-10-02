@@ -116,8 +116,8 @@ def vgchartz_crawler(
     vgchartz_json = _t_vgchartz_html_to_json(vgchartz_html)
     vgchartz_df = _t_vgchartz_json_to_df(vgchartz_json)
 
-    output_file_folder = Path("./tmp")
-    output_file_folder.mkdir(exist_ok=True)
+    output_file_folder = Path("./tmp/vgchartz")
+    output_file_folder.mkdir(parents=True, exist_ok=True)
     output_file_name = f"vgchartz_{region}_{ending}.xlsx"
     output_file_path = output_file_folder / output_file_name
     vgchartz_df.to_excel(output_file_path, index=False)
