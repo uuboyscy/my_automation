@@ -111,7 +111,7 @@ def vgchartz_crawler(
     region: VGCHARTZ_REGION_LITERAL = VGCHARTZ_DEFAULT_REGION,
     ending: VGCHARTZ_ENDING_LITERAL = VGCHARTZ_DEFAULT_ENDING,
 ) -> str:
-    """Return file name."""
+    """Return file path."""
     vgchartz_html = _e_vgchartz_html(region=region, ending=ending)
     vgchartz_json = _t_vgchartz_html_to_json(vgchartz_html)
     vgchartz_df = _t_vgchartz_json_to_df(vgchartz_json)
@@ -131,7 +131,7 @@ def send_email(
     msg: str,
     file_path: str | None = None,
 ) -> bool:
-    """send_email."""
+    """Send email with file attached."""
     # Create a multipart message
     message = MIMEMultipart()
     message["From"] = GMAIL_USER_EMAIL
