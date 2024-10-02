@@ -24,5 +24,8 @@
     "python.analysis.autoImportCompletions": true,
     "python.analysis.completeFunctionParens": true,
     "python.analysis.inlayHints.functionReturnTypes": true,
-    "trailing-spaces.trimOnSave": true
+    "trailing-spaces.trimOnSave": true,
+    "conventionalCommits.scopes": [
+        "vgchartz"
+    ]
 }
