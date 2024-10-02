@@ -176,7 +176,7 @@ def send_email(
         return False
 
 
-if __name__ == "__main__":
+def main() -> None:
     for region in VGCHARTZ_REGION_LITERAL.__args__:
         for ending in VGCHARTZ_ENDING_LITERAL.__args__:
             file_path = vgchartz_crawler(region=region, ending=ending)
@@ -203,3 +203,7 @@ if __name__ == "__main__":
                 "",
                 file_path,
             )
+
+
+if __name__ == "__main__":
+    main()
