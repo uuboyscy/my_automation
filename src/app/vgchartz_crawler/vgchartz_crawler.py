@@ -13,9 +13,9 @@ import requests
 from bs4 import BeautifulSoup
 
 # Email information
-GMAIL_USERNAME = os.environ.get("GMAIL_USERNAME")
-GMAIL_USER_EMAIL = f"{GMAIL_USERNAME}@gmail.com"
-GMAIL_APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD")
+VGCHARTZ_GMAIL_USERNAME = os.environ.get("VGCHARTZ_GMAIL_USERNAME")
+GMAIL_USER_EMAIL = f"{VGCHARTZ_GMAIL_USERNAME}@gmail.com"
+VGCHARTZ_GMAIL_APP_PASSWORD = os.environ.get("VGCHARTZ_GMAIL_APP_PASSWORD")
 MAIL_SERVER = "smtp.gmail.com"
 SMTP_PORT = 465
 
@@ -181,9 +181,9 @@ def send_email(
         # Connect to the SMTP server
         with smtplib.SMTP_SSL(MAIL_SERVER, SMTP_PORT) as server:
             # server.starttls()  # Secure the connection with TLS
-            server.login(GMAIL_USERNAME, GMAIL_APP_PASSWORD)
+            server.login(VGCHARTZ_GMAIL_USERNAME, VGCHARTZ_GMAIL_APP_PASSWORD)
             text = message.as_string()
-            server.sendmail(GMAIL_USERNAME, receiver_email, text)
+            server.sendmail(VGCHARTZ_GMAIL_USERNAME, receiver_email, text)
 
             print("Email sent!")
 
@@ -212,14 +212,14 @@ def main() -> None:
     )
 
     send_email(
-        os.getenv("RECEIVER_EMAIL_1"),
+        os.getenv("VGCHARTZ_RECEIVER_EMAIL_1"),
         str(merged_excel_path),
         "",
         merged_excel_path,
     )
 
     send_email(
-        os.getenv("RECEIVER_EMAIL_2"),
+        os.getenv("VGCHARTZ_RECEIVER_EMAIL_2"),
         str(merged_excel_path),
         "",
         merged_excel_path,
