@@ -19,4 +19,4 @@ jobs:
           VGCHARTZ_GMAIL_APP_PASSWORD: ${{ secrets.VGCHARTZ_GMAIL_APP_PASSWORD }}
           VGCHARTZ_RECEIVER_EMAIL_1: ${{ secrets.VGCHARTZ_RECEIVER_EMAIL_1 }}
           VGCHARTZ_RECEIVER_EMAIL_2: ${{ secrets.VGCHARTZ_RECEIVER_EMAIL_2 }}
-        run: python src/app/vgchartz_crawler/vgchartz_crawler.py
+        run: python src/app/vgchartz/vgchartz_crawler.py
