@@ -1,0 +1,22 @@
+name: weekly vgchartz reporter
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * 1" # UTC 0:00
+
+jobs:
+  run-vgchartz-crawler:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/install_python_dependencies
+
+      - name: vgchart-report
+        env:
+          VGCHARTZ_GMAIL_USERNAME: ${{ secrets.VGCHARTZ_GMAIL_USERNAME }}
+          VGCHARTZ_GMAIL_APP_PASSWORD: ${{ secrets.VGCHARTZ_GMAIL_APP_PASSWORD }}
+          VGCHARTZ_RECEIVER_EMAIL_1: ${{ secrets.VGCHARTZ_RECEIVER_EMAIL_1 }}
+          VGCHARTZ_RECEIVER_EMAIL_2: ${{ secrets.VGCHARTZ_RECEIVER_EMAIL_2 }}
+        run: python src/app/vgchartz_crawler/vgchartz_crawler.py
