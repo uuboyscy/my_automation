@@ -17,8 +17,8 @@ jobs:
 
       - name: Run stock price notification script
         env:
-          STOCK_NEWS_SENDER_EMAIL: ${{secret.STOCK_NEWS_SENDER_EMAIL}}
-          STOCK_NEWS_RECEIVER_EMAIL: ${{secret.STOCK_NEWS_RECEIVER_EMAIL}}
-          STOCK_NEWS_EMAIL_PASSWORD: ${{secret.STOCK_NEWS_EMAIL_PASSWORD}}
-          STOCK_NEWS_SLACK_NOTIFY_WEBHOOK: ${{secret.STOCK_NEWS_SLACK_NOTIFY_WEBHOOK}}
-        run: python stock_news_crawler.py
+          STOCK_NEWS_SENDER_EMAIL: ${{ secrets.STOCK_NEWS_SENDER_EMAIL }}
+          STOCK_NEWS_RECEIVER_EMAIL: ${{ secrets.STOCK_NEWS_RECEIVER_EMAIL }}
+          STOCK_NEWS_EMAIL_PASSWORD: ${{ secrets.STOCK_NEWS_EMAIL_PASSWORD }}
+          STOCK_NEWS_SLACK_NOTIFY_WEBHOOK: ${{ secrets.STOCK_NEWS_SLACK_NOTIFY_WEBHOOK }}
+        run: python src/app/stock_news/stock_news_crawler.py
