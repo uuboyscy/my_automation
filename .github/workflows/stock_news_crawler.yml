@@ -1,0 +1,24 @@
+name: Stock News Notification
+
+on:
+  schedule:
+    - cron: "30 1 * * 1-5" # UTC 01:30
+  workflow_dispatch:
+
+jobs:
+  send_notification:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Python dependencies
+        uses: ./.github/actions/install_python_dependencies
+
+      - name: Run stock price notification script
+        env:
+          STOCK_NEWS_SENDER_EMAIL: ${{secret.STOCK_NEWS_SENDER_EMAIL}}
+          STOCK_NEWS_RECEIVER_EMAIL: ${{secret.STOCK_NEWS_RECEIVER_EMAIL}}
+          STOCK_NEWS_EMAIL_PASSWORD: ${{secret.STOCK_NEWS_EMAIL_PASSWORD}}
+          STOCK_NEWS_SLACK_NOTIFY_WEBHOOK: ${{secret.STOCK_NEWS_SLACK_NOTIFY_WEBHOOK}}
+        run: python stock_news_crawler.py
