@@ -9,6 +9,11 @@ from email.mime.text import MIMEText
 import requests
 from bs4 import BeautifulSoup
 
+SENDER_EMAIL = os.environ.get("STOCK_NEWS_SENDER_EMAIL")
+RECEIVER_EMAIL = os.environ.get("STOCK_NEWS_RECEIVER_EMAIL")
+EMAIL_PASSWORD = os.environ.get("STOCK_NEWS_EMAIL_PASSWORD")
+SLACK_NOTIFY_WEBHOOK = os.environ.get("STOCK_NEWS_SLACK_NOTIFY_WEBHOOK")
+
 
 def shorten_url(url: str) -> str:
     try:
@@ -112,9 +117,9 @@ def get_us_news() -> str:
     return "\n".join(news) if news else "Unable to fetch US stock news"
 
 
-def send_slack_notify(message: str) -> None:
-    slack_notify_webhook = os.environ.get("STOCK_NEWS_SLACK_NOTIFY_WEBHOOK")
-    data = {"text": message}
+def send_slack_notify(msg: str) -> None:
+    slack_notify_webhook = SLACK_NOTIFY_WEBHOOK
+    data = {"text": msg}
 
     try:
         res = requests.post(slack_notify_webhook, json=data)
@@ -124,16 +129,16 @@ def send_slack_notify(message: str) -> None:
 
 
 def send_email(content):
-    sender_email = os.environ["STOCK_NEWS_SENDER_EMAIL"]
-    receiver_email = os.environ["STOCK_NEWS_RECEIVER_EMAIL"]
-    password = os.environ["STOCK_NEWS_EMAIL_PASSWORD"]
+    sender_email = SENDER_EMAIL
+    receiver_email = RECEIVER_EMAIL
+    password = EMAIL_PASSWORD
 
-    message = MIMEMultipart("alternative")
-    message["Subject"] = (
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = (
         f"Daily stock information and news - {datetime.now().strftime('%Y-%m-%d')}"
     )
-    message["From"] = sender_email
-    message["To"] = receiver_email
+    msg["From"] = sender_email
+    msg["To"] = receiver_email
 
     # 轉換純文本內容為HTML
     html = f"""\
@@ -145,12 +150,12 @@ def send_email(content):
     """
 
     part = MIMEText(html, "html")
-    message.attach(part)
+    msg.attach(part)
 
     try:
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
             server.login(sender_email, password)
-            server.sendmail(sender_email, receiver_email, message.as_string())
+            server.sendmail(sender_email, receiver_email, msg.as_string())
         print("Email sent successfully")
     except Exception as e:
         print(f"Error sending email: {e}")
@@ -194,17 +199,17 @@ def generate_notification_content() -> str:
 
 def send_notifications(content):
     # Prepare Slack message
-    line_message = content.replace("<strong>", "").replace("</strong>", "")
-    line_message = line_message.replace("<br>", "\n")
-    line_message = line_message.replace("<p>", "").replace("</p>", "\n")
-    line_message = line_message.replace("<h2>", "\n").replace("</h2>", "\n")
-    line_message = line_message.replace("<h3>", "\n").replace("</h3>", "\n")
-    line_message = re.sub(r"<span.*?>", "", line_message)
-    line_message = re.sub(r"</span>", "", line_message)
+    slack_msg = content.replace("<strong>", "").replace("</strong>", "")
+    slack_msg = slack_msg.replace("<br>", "\n")
+    slack_msg = slack_msg.replace("<p>", "").replace("</p>", "\n")
+    slack_msg = slack_msg.replace("<h2>", "\n").replace("</h2>", "\n")
+    slack_msg = slack_msg.replace("<h3>", "\n").replace("</h3>", "\n")
+    slack_msg = re.sub(r"<span.*?>", "", slack_msg)
+    slack_msg = re.sub(r"</span>", "", slack_msg)
 
     # Send notification
     send_email(content)
-    send_slack_notify(line_message)
+    send_slack_notify(slack_msg)
 
 
 def main():
