@@ -17,5 +17,5 @@ jobs:
 
       - name: Run stock price notification script
         env:
-          STOCK_NEWS_LINE_NOTIFY_TOKEN: ${{ secrets.STOCK_NEWS_SLACK_NOTIFY_WEBHOOK }}
+          STOCK_NEWS_SLACK_NOTIFY_WEBHOOK: ${{ secrets.STOCK_NEWS_SLACK_NOTIFY_WEBHOOK }}
         run: python src/app/stock_news/stock_price_notification.py
