@@ -26,6 +26,7 @@
     "python.analysis.inlayHints.functionReturnTypes": true,
     "trailing-spaces.trimOnSave": true,
     "conventionalCommits.scopes": [
-        "vgchartz"
+        "vgchartz",
+        "stock_news"
     ]
 }
