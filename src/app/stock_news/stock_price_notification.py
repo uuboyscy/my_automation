@@ -67,9 +67,8 @@ def get_stock_info(symbol):
     }
 
 
-msg = "\nToday stock relative price:\n\n"
-
-for stock in STOCK_LIST:
+def generate_notification_content(stock, stock_info) -> str:
+    msg = ""
     try:
         stock_info = get_stock_info(stock)
         msg += f"{stock}: Now {stock_info['current_price']:.2f}\n"
@@ -80,6 +79,20 @@ for stock in STOCK_LIST:
         print(f"Fetching stock {stock} error: {e}")
         msg += f"{stock}: Unable to fetch data\n"
 
-# Send notification
-print(msg)
-send_slack_notify(msg)
+    return msg
+
+
+def main() -> None:
+    stock_info_map = {stock: get_stock_info(stock) for stock in STOCK_LIST}
+
+    msg = "\nToday stock relative price:\n\n"
+    for stock, stock_info in stock_info_map.items():
+        msg += generate_notification_content(stock, stock_info)
+
+    # Send notification
+    print(msg)
+    send_slack_notify(msg)
+
+
+if __name__ == "__main__":
+    main()
