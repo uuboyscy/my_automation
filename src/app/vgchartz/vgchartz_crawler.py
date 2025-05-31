@@ -11,6 +11,9 @@ from typing import Literal
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Email information
 VGCHARTZ_GMAIL_USERNAME = os.environ.get("VGCHARTZ_GMAIL_USERNAME")

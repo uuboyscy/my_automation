@@ -2,6 +2,9 @@ import os
 
 import requests
 import yfinance as yf
+from dotenv import load_dotenv
+
+load_dotenv()
 
 STOCK_NEWS_SLACK_NOTIFY_WEBHOOK = os.environ["STOCK_NEWS_SLACK_NOTIFY_WEBHOOK"]
 STOCK_LIST = [

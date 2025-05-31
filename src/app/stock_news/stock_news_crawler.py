@@ -8,6 +8,9 @@ from email.mime.text import MIMEText
 
 import requests
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
+
+load_dotenv()
 
 SENDER_EMAIL = os.environ.get("STOCK_NEWS_SENDER_EMAIL")
 RECEIVER_EMAIL = os.environ.get("STOCK_NEWS_RECEIVER_EMAIL")
