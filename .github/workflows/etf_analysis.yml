@@ -1,0 +1,21 @@
+name: ETF Analysis
+
+on:
+  schedule:
+    - cron: "0 1 * * 1-5"
+  workflow_dispatch:
+
+jobs:
+  send_notification:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Python dependencies
+        uses: ./.github/actions/install_python_dependencies
+
+      - name: Run analysis
+        env:
+          STOCK_NEWS_LINE_NOTIFY_TOKEN: ${{ secrets.STOCK_NEWS_LINE_NOTIFY_TOKEN }}
+        run: python etf_analysis.py
