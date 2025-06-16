@@ -4,6 +4,11 @@ import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 
+BASE_URL = "https://browser.geekbench.com/search"
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
+}
+
 
 @dataclass
 class GeekbenchProcessorResult:
@@ -19,11 +24,6 @@ class GeekbenchProcessorResult:
 
 
 class GeekbenchProcessorResultScraper:
-    BASE_URL = "https://browser.geekbench.com/search"
-    HEADERS = {
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
-    }
-
     def __init__(self, cpu_name: str) -> None:
         self.cpu_name = cpu_name
         self._total_pages = None
