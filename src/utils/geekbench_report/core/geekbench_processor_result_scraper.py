@@ -28,7 +28,7 @@ class GeekbenchProcessorResultScraper:
         self.cpu_name = cpu_name
         self._total_pages = None
 
-    def _get_page_url(self) -> str:
+    def _get_base_url(self) -> str:
         return BASE_URL
 
     def _get_params(self, page: int) -> dict[str, str]:
@@ -80,7 +80,7 @@ class GeekbenchProcessorResultScraper:
             return self._total_pages
 
         response = requests.get(
-            self._get_page_url(1), headers=HEADERS, params=self._get_params(1)
+            self._get_base_url(), headers=HEADERS, params=self._get_params(1)
         )
         soup = BeautifulSoup(response.text, "html.parser")
 
@@ -110,7 +110,7 @@ class GeekbenchProcessorResultScraper:
     def scrape_page(self, page: int) -> list[GeekbenchProcessorResult]:
         """Scrape a single page of results."""
         response = requests.get(
-            self._get_page_url(page),
+            self._get_base_url(),
             headers=HEADERS,
             params=self._get_params(page),
         )
@@ -151,12 +151,20 @@ class GeekbenchProcessorResultScraper:
 
 # Example usage
 if __name__ == "__main__":
-    scraper = GeekbenchProcessorResultScraper("AMD Ryzen 9 9950X3D")
-    total_pages = scraper.get_total_pages()
+    proc_name_list = [
+        "AMD Ryzen 9 9950X3D",
+        "AMD Ryzen 9 7940HS",
+        "Intel Core i7-12700K",
+        "Intel Core i7-12700KF",
+        "Intel Core i7-12700F",
+        "Intel Core i7-12700",
+    ]
 
-    print(f"Total pages available: {total_pages}")
-
-    # Scrape all pages
-    df = scraper.scrape_multiple_pages()
-    df.to_csv("test_geekbench_results.csv", index=False)
-    print(f"Total results found: {len(df)}")
+    for proc_name in proc_name_list:
+        scraper = GeekbenchProcessorResultScraper(proc_name)
+        total_pages = scraper.get_total_pages()
+        print(f"Total pages available: {total_pages}")
+        df = scraper.scrape_multiple_pages()
+        df.to_csv(f"{proc_name.replace(' ', '_')}.csv", index=False)
+        print(f"Total results found: {len(df)}")
+        print("==========")
