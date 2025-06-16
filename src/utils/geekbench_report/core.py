@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Dict, List, Optional
 
 import pandas as pd
 import requests
@@ -8,15 +7,15 @@ from bs4 import BeautifulSoup
 
 @dataclass
 class GeekbenchResult:
-    system: Optional[str]
-    cpu_model: Optional[str]
-    frequency: Optional[str]
-    cores: Optional[str]
-    uploaded: Optional[str]
-    platform: Optional[str]
-    single_core_score: Optional[str]
-    multi_core_score: Optional[str]
-    url: Optional[str]
+    system: str | None
+    cpu_model: str | None
+    frequency: str | None
+    cores: str | None
+    uploaded: str | None
+    platform: str | None
+    single_core_score: str | None
+    multi_core_score: str | None
+    url: str | None
 
 
 class GeekbenchScraper:
@@ -25,14 +24,14 @@ class GeekbenchScraper:
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
     }
 
-    def __init__(self, cpu_name: str):
+    def __init__(self, cpu_name: str) -> None:
         self.cpu_name = cpu_name
         self._total_pages = None
 
-    def _get_page_url(self, page: int) -> str:
+    def _get_page_url(self) -> str:
         return self.BASE_URL
 
-    def _get_params(self, page: int) -> Dict[str, str]:
+    def _get_params(self, page: int) -> dict[str, str]:
         return {"q": self.cpu_name, "page": str(page)}
 
     def _parse_entry(self, entry) -> GeekbenchResult:
@@ -108,7 +107,7 @@ class GeekbenchScraper:
 
         return self._total_pages
 
-    def scrape_page(self, page: int) -> List[GeekbenchResult]:
+    def scrape_page(self, page: int) -> list[GeekbenchResult]:
         """Scrape a single page of results."""
         response = requests.get(
             self._get_page_url(page),
@@ -122,7 +121,7 @@ class GeekbenchScraper:
         return [self._parse_entry(entry) for entry in entries]
 
     def scrape_multiple_pages(
-        self, start_page: int = 1, end_page: Optional[int] = None
+        self, start_page: int = 1, end_page: int | None = None
     ) -> pd.DataFrame:
         """
         Scrape multiple pages of results.
