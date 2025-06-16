@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 
 
 @dataclass
-class GeekbenchResult:
+class GeekbenchProcessorResult:
     system: str | None
     cpu_model: str | None
     frequency: str | None
@@ -18,7 +18,7 @@ class GeekbenchResult:
     url: str | None
 
 
-class GeekbenchScraper:
+class GeekbenchProcessorResultScraper:
     BASE_URL = "https://browser.geekbench.com/search"
     HEADERS = {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
@@ -34,7 +34,7 @@ class GeekbenchScraper:
     def _get_params(self, page: int) -> dict[str, str]:
         return {"q": self.cpu_name, "page": str(page)}
 
-    def _parse_entry(self, entry) -> GeekbenchResult:
+    def _parse_entry(self, entry) -> GeekbenchProcessorResult:
         system_a = entry.select_one("a[href^='/v6/cpu/']")
         system = system_a.text.strip() if system_a else None
         url = system_a["href"] if system_a and system_a.has_attr("href") else None
@@ -58,7 +58,7 @@ class GeekbenchScraper:
             "span.list-col-subtitle-score:contains('Multi-Core Score') + span"
         )
 
-        return GeekbenchResult(
+        return GeekbenchProcessorResult(
             system=system,
             cpu_model=cpu_model,
             frequency=cpu_freq,
@@ -107,7 +107,7 @@ class GeekbenchScraper:
 
         return self._total_pages
 
-    def scrape_page(self, page: int) -> list[GeekbenchResult]:
+    def scrape_page(self, page: int) -> list[GeekbenchProcessorResult]:
         """Scrape a single page of results."""
         response = requests.get(
             self._get_page_url(page),
@@ -151,7 +151,7 @@ class GeekbenchScraper:
 
 # Example usage
 if __name__ == "__main__":
-    scraper = GeekbenchScraper("AMD Ryzen 9 9950X3D")
+    scraper = GeekbenchProcessorResultScraper("AMD Ryzen 9 9950X3D")
     total_pages = scraper.get_total_pages()
 
     print(f"Total pages available: {total_pages}")
