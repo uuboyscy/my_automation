@@ -27,6 +27,7 @@
     "trailing-spaces.trimOnSave": true,
     "conventionalCommits.scopes": [
         "vgchartz",
-        "stock_news"
+        "stock_news",
+        "geekbench-report"
     ]
 }
