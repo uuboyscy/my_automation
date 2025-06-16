@@ -29,7 +29,7 @@ class GeekbenchProcessorResultScraper:
         self._total_pages = None
 
     def _get_page_url(self) -> str:
-        return self.BASE_URL
+        return BASE_URL
 
     def _get_params(self, page: int) -> dict[str, str]:
         return {"q": self.cpu_name, "page": str(page)}
@@ -80,7 +80,7 @@ class GeekbenchProcessorResultScraper:
             return self._total_pages
 
         response = requests.get(
-            self._get_page_url(1), headers=self.HEADERS, params=self._get_params(1)
+            self._get_page_url(1), headers=HEADERS, params=self._get_params(1)
         )
         soup = BeautifulSoup(response.text, "html.parser")
 
@@ -111,7 +111,7 @@ class GeekbenchProcessorResultScraper:
         """Scrape a single page of results."""
         response = requests.get(
             self._get_page_url(page),
-            headers=self.HEADERS,
+            headers=HEADERS,
             params=self._get_params(page),
         )
         soup = BeautifulSoup(response.text, "html.parser")
