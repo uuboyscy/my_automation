@@ -27,7 +27,8 @@ def sync_cpu_model_names_to_pg(init: bool = False) -> None:
     scraper = GeekbenchProcessorNameScraper()
     all_cpu_model_list = scraper.scrape_all_cpu_models()
     df = pd.DataFrame(all_cpu_model_list, columns=["cpu_model"])
-    df.to_csv("cpu_model_names.csv", index=False)
+    # df.to_csv("cpu_model_names.csv", index=False)
+
     with get_postgresql_conn(
         database=GEEKBENCH_REPORT_POSTGRESDB_DATABASE,
         user=GEEKBENCH_REPORT_POSTGRESDB_USER,
