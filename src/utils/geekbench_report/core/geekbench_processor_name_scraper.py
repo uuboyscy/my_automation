@@ -13,6 +13,7 @@ LATEST_RESULTS_URL = "https://browser.geekbench.com/v6/cpu?page={page}"
 
 # For benchmarks of common used CPUs. Only one page.
 BENCHMARKS_URL = "https://browser.geekbench.com/processor-benchmarks"
+
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36",
 }
