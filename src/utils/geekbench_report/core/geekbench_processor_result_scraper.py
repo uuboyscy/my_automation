@@ -46,16 +46,16 @@ class GeekbenchProcessorResultScraper:
         cpu_cores = cpu_lines[2].strip("() \n") if len(cpu_lines) > 2 else None
 
         uploaded_text = entry.select_one(
-            "span.list-col-subtitle:contains('Uploaded') + span"
+            "span.list-col-subtitle:-soup-contains('Uploaded') + span"
         )
         platform_text = entry.select_one(
-            "span.list-col-subtitle:contains('Platform') + span"
+            "span.list-col-subtitle:-soup-contains('Platform') + span"
         )
         single_core_score = entry.select_one(
-            "span.list-col-subtitle-score:contains('Single-Core Score') + span"
+            "span.list-col-subtitle-score:-soup-contains('Single-Core Score') + span"
         )
         multi_core_score = entry.select_one(
-            "span.list-col-subtitle-score:contains('Multi-Core Score') + span"
+            "span.list-col-subtitle-score:-soup-contains('Multi-Core Score') + span"
         )
 
         # Convert scores to integers using isdigit()
