@@ -18,8 +18,8 @@ class GeekbenchProcessorResult:
     cores: str | None
     uploaded: str | None
     platform: str | None
-    single_core_score: str | None
-    multi_core_score: str | None
+    single_core_score: int | None
+    multi_core_score: int | None
     url: str | None
 
 
@@ -58,6 +58,17 @@ class GeekbenchProcessorResultScraper:
             "span.list-col-subtitle-score:contains('Multi-Core Score') + span"
         )
 
+        # Convert scores to integers using isdigit()
+        single_score = None
+        if single_core_score:
+            score_text = single_core_score.text.strip().replace(",", "")
+            single_score = int(score_text) if score_text.isdigit() else None
+
+        multi_score = None
+        if multi_core_score:
+            score_text = multi_core_score.text.strip().replace(",", "")
+            multi_score = int(score_text) if score_text.isdigit() else None
+
         return GeekbenchProcessorResult(
             system=system,
             cpu_model=cpu_model,
@@ -65,12 +76,8 @@ class GeekbenchProcessorResultScraper:
             cores=cpu_cores,
             uploaded=uploaded_text.text.strip() if uploaded_text else None,
             platform=platform_text.text.strip() if platform_text else None,
-            single_core_score=(
-                single_core_score.text.strip() if single_core_score else None
-            ),
-            multi_core_score=(
-                multi_core_score.text.strip() if multi_core_score else None
-            ),
+            single_core_score=single_score,
+            multi_core_score=multi_score,
             url=f"https://browser.geekbench.com{url}" if url else None,
         )
 
