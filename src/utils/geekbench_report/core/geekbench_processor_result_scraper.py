@@ -198,5 +198,5 @@ if __name__ == "__main__":
         df.to_csv(f"{proc_name.replace(' ', '_')}.csv", index=False)
 
         print(f"Total results found: {len(df)}")
-        print(time.time() - start_time())
+        print(f"{time.time() - start_time} seconds took.")
         print("==========")
