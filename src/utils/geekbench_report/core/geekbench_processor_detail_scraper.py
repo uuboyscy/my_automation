@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Dict, Optional
 
 import requests
 from bs4 import BeautifulSoup
@@ -12,16 +11,16 @@ HEADERS = {
 
 @dataclass
 class GeekbenchProcessorDetail:
-    title: Optional[str]
-    upload_date: Optional[str]
-    views: Optional[str]
-    single_core_score: Optional[str]
-    multi_core_score: Optional[str]
-    system_info: Dict[str, str]
-    cpu_info: Dict[str, str]
-    memory_info: Dict[str, str]
-    single_core_benchmarks: Dict[str, Dict[str, str]]
-    multi_core_benchmarks: Dict[str, Dict[str, str]]
+    title: str | None
+    upload_date: str | None
+    views: str | None
+    single_core_score: str | None
+    multi_core_score: str | None
+    system_info: dict[str, str]
+    cpu_info: dict[str, str]
+    memory_info: dict[str, str]
+    single_core_benchmarks: dict[str, dict[str, str]]
+    multi_core_benchmarks: dict[str, dict[str, str]]
 
 
 class GeekbenchProcessorDetailScraper:
@@ -31,7 +30,7 @@ class GeekbenchProcessorDetailScraper:
     def _get_detail_url(self) -> str:
         return BASE_URL.format(cpu_id=self.cpu_id)
 
-    def _parse_table(self, soup, index: int) -> Dict[str, str]:
+    def _parse_table(self, soup, index: int) -> dict[str, str]:
         """Extract a key-value table based on class 'system-table' by index."""
         data = {}
         rows = soup.select("table.system-table")[index].select("tbody tr")
@@ -43,7 +42,7 @@ class GeekbenchProcessorDetailScraper:
                 data[key] = value
         return data
 
-    def _parse_benchmark_table(self, table) -> Dict[str, Dict[str, str]]:
+    def _parse_benchmark_table(self, table) -> dict[str, dict[str, str]]:
         benchmarks = {}
         for row in table.select("tbody tr"):
             name_tag = row.find("td", class_="name")
@@ -69,7 +68,7 @@ class GeekbenchProcessorDetailScraper:
         multi_core_score = score_tags[1].text.strip() if len(score_tags) > 1 else None
 
         # Upload date and views
-        def get_value(label: str) -> Optional[str]:
+        def get_value(label: str) -> str | None:
             td = soup.find("td", class_="system-name", string=label)
             return td.find_next_sibling("td").get_text(strip=True) if td else None
 
