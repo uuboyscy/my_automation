@@ -12,10 +12,11 @@ HEADERS = {
 
 @dataclass
 class GeekbenchProcessorResult:
+    cpu_id: str | None
     system: str | None
     cpu_model: str | None
     frequency: str | None
-    cores: str | None
+    cores: int | None
     uploaded: str | None
     platform: str | None
     single_core_score: int | None
@@ -37,20 +38,31 @@ class GeekbenchProcessorResultScraper:
     def _parse_entry(self, entry) -> GeekbenchProcessorResult:
         system_a = entry.select_one("a[href^='/v6/cpu/']")
         system = system_a.text.strip() if system_a else None
-        url = system_a["href"] if system_a and system_a.has_attr("href") else None
+        cpuid_url = system_a["href"] if system_a and system_a.has_attr("href") else None
+        url = f"https://browser.geekbench.com{cpuid_url}" if cpuid_url else None
 
         cpu_info = entry.select_one("span.list-col-model")
         cpu_lines = cpu_info.text.strip().split("\n") if cpu_info else []
         cpu_model = cpu_lines[0].strip() if len(cpu_lines) > 0 else None
         cpu_freq = cpu_lines[1].strip() if len(cpu_lines) > 1 else None
-        cpu_cores = cpu_lines[2].strip("() \n") if len(cpu_lines) > 2 else None
+        cpu_cores = (
+            int(cpu_lines[2].strip("() \n").replace("cores", "").strip())
+            if len(cpu_lines) > 2
+            else None
+        )
 
         uploaded_text = entry.select_one(
             "span.list-col-subtitle:-soup-contains('Uploaded') + span"
         )
+        # Some date string be like "Feb 28, 2023\n\nrdelossantos"
+        uploaded = (
+            uploaded_text.text.strip().split("\n")[0].strip() if uploaded_text else None
+        )
+
         platform_text = entry.select_one(
             "span.list-col-subtitle:-soup-contains('Platform') + span"
         )
+        platform = platform_text.text.strip() if platform_text else None
         single_core_score = entry.select_one(
             "span.list-col-subtitle-score:-soup-contains('Single-Core Score') + span"
         )
@@ -70,15 +82,16 @@ class GeekbenchProcessorResultScraper:
             multi_score = int(score_text) if score_text.isdigit() else None
 
         return GeekbenchProcessorResult(
+            cpu_id=url.split("/")[-1],
             system=system,
             cpu_model=cpu_model,
             frequency=cpu_freq,
             cores=cpu_cores,
-            uploaded=uploaded_text.text.strip() if uploaded_text else None,
-            platform=platform_text.text.strip() if platform_text else None,
+            uploaded=uploaded,
+            platform=platform,
             single_core_score=single_score,
             multi_core_score=multi_score,
-            url=f"https://browser.geekbench.com{url}" if url else None,
+            url=url,
         )
 
     def get_total_pages(self) -> int:
@@ -158,6 +171,8 @@ class GeekbenchProcessorResultScraper:
 
 # Example usage
 if __name__ == "__main__":
+    import time
+
     proc_name_list = [
         "AMD Ryzen 9 9950X3D",
         "AMD Ryzen 9 7940HS",
@@ -167,11 +182,21 @@ if __name__ == "__main__":
         "Intel Core i7-12700",
     ]
 
+    start_time = time.time()
+
     for proc_name in proc_name_list:
+        start_time = time.time()
+
+        print(f"Processing {proc_name}")
+
         scraper = GeekbenchProcessorResultScraper(proc_name)
         total_pages = scraper.get_total_pages()
+
         print(f"Total pages available: {total_pages}")
+
         df = scraper.scrape_multiple_pages()
         df.to_csv(f"{proc_name.replace(' ', '_')}.csv", index=False)
+
         print(f"Total results found: {len(df)}")
+        print(time.time() - start_time())
         print("==========")
