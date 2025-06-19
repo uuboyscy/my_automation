@@ -25,9 +25,10 @@ class GeekbenchProcessorResult:
 
 
 class GeekbenchProcessorResultScraper:
-    def __init__(self, cpu_name: str) -> None:
+    def __init__(self, cpu_name: str, max_pages: int | None) -> None:
         self.cpu_name = cpu_name
         self._total_pages = None
+        self.max_pages = max_pages
 
     def _get_base_url(self) -> str:
         return BASE_URL
@@ -124,6 +125,12 @@ class GeekbenchProcessorResultScraper:
             )
         except ValueError:
             self._total_pages = 1
+
+        if (self.max_pages is not None) and (self.max_pages > 0):
+            print(
+                f"Total pages detected: {self._total_pages}; Limit = {self.max_pages}",
+            )
+            self._total_pages = min(self._total_pages, self.max_pages)
 
         return self._total_pages
 
