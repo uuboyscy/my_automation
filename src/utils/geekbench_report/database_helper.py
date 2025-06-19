@@ -40,6 +40,11 @@ def get_cpu_model_name_list_from_pg(limit: int | None = None) -> list[str]:
 
 def get_last_updated_dates_of_cpu_model_df() -> pd.DataFrame:
     sql = """
+        select
+            cpu_model
+            , max(uploaded) as last_uploaded
+        from cpu_model_results
+        group by cpu_model
     """
     with get_postgresql_conn(
         database=GEEKBENCH_REPORT_POSTGRESDB_DATABASE,
