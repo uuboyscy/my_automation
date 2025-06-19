@@ -3,6 +3,7 @@ from dataclasses import dataclass
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
+from pandas import Timestamp
 
 BASE_URL = "https://browser.geekbench.com/search"
 HEADERS = {
@@ -17,7 +18,7 @@ class GeekbenchProcessorResult:
     cpu_model: str | None
     frequency: str | None
     cores: int | None
-    uploaded: str | None
+    uploaded: Timestamp | None
     platform: str | None
     single_core_score: int | None
     multi_core_score: int | None
@@ -25,7 +26,7 @@ class GeekbenchProcessorResult:
 
 
 class GeekbenchProcessorResultScraper:
-    def __init__(self, cpu_name: str, max_pages: int | None) -> None:
+    def __init__(self, cpu_name: str, max_pages: int | None = None) -> None:
         self.cpu_name = cpu_name
         self._total_pages = None
         self.max_pages = max_pages
@@ -56,9 +57,10 @@ class GeekbenchProcessorResultScraper:
             "span.list-col-subtitle:-soup-contains('Uploaded') + span"
         )
         # Some date string be like "Feb 28, 2023\n\nrdelossantos"
-        uploaded = (
+        date_str = (
             uploaded_text.text.strip().split("\n")[0].strip() if uploaded_text else None
         )
+        uploaded = pd.to_datetime(date_str, errors="coerce") if date_str else None
 
         platform_text = entry.select_one(
             "span.list-col-subtitle:-soup-contains('Platform') + span"
@@ -182,11 +184,9 @@ if __name__ == "__main__":
 
     proc_name_list = [
         "AMD Ryzen 9 9950X3D",
-        "AMD Ryzen 9 7940HS",
-        "Intel Core i7-12700K",
-        "Intel Core i7-12700KF",
-        "Intel Core i7-12700F",
-        "Intel Core i7-12700",
+        # "AMD Ryzen 9 7940HS",
+        # "Intel Core i7-12700F",
+        # "Intel Core i7-12700",
     ]
 
     start_time = time.time()
@@ -196,7 +196,7 @@ if __name__ == "__main__":
 
         print(f"Processing {proc_name}")
 
-        scraper = GeekbenchProcessorResultScraper(proc_name)
+        scraper = GeekbenchProcessorResultScraper(proc_name, max_pages=30)
         total_pages = scraper.get_total_pages()
 
         print(f"Total pages available: {total_pages}")
