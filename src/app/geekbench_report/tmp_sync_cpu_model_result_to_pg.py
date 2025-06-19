@@ -11,7 +11,7 @@ from utils.geekbench_report.database_helper import load_df_to_pg
 
 def sync_cpu_model_result_to_pg(init: bool = False) -> None:
     # Testing local run
-    proc_name_list = pd.read_csv("./cpu_model_names.csv")["cpu_model"].to_list()
+    proc_name_list = pd.read_csv("./tmp_cpu_model_names.csv")["cpu_model"].to_list()
 
     offset = 0
     if os.path.exists(".offset"):
