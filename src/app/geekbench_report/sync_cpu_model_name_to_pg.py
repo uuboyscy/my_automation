@@ -60,6 +60,17 @@ GEEKBENCH_REPORT_POSTGRESDB_USER = os.getenv("GEEKBENCH_REPORT_POSTGRESDB_USER")
 GEEKBENCH_REPORT_POSTGRESDB_PASSWORD = os.getenv("GEEKBENCH_REPORT_POSTGRESDB_PASSWORD")
 
 
+def get_existing_models_df() -> pd.DataFrame:
+    with get_postgresql_conn(
+        database=GEEKBENCH_REPORT_POSTGRESDB_DATABASE,
+        user=GEEKBENCH_REPORT_POSTGRESDB_USER,
+        password=GEEKBENCH_REPORT_POSTGRESDB_PASSWORD,
+        host=GEEKBENCH_REPORT_POSTGRESDB_HOST,
+        port=GEEKBENCH_REPORT_POSTGRESDB_PORT,
+    ) as conn:
+        return pd.read_sql("SELECT cpu_model FROM cpu_model_names", conn)
+
+
 def sync_cpu_model_names_to_pg(init: bool = False) -> None:
     """Sync CPU model names to PostgreSQL database."""
     scraper = GeekbenchProcessorNameScraper()
@@ -83,20 +94,22 @@ def sync_cpu_model_names_to_pg(init: bool = False) -> None:
             )
         else:
             # Read existing CPU model names from database
-            existing_df = pd.read_sql("SELECT cpu_model FROM cpu_model_names", conn)
+            existing_df = get_existing_models_df()
             existing_models = set(existing_df["cpu_model"])
 
             # Find new CPU models that need to be added
             new_models = set(df["cpu_model"]) - existing_models
             if new_models:
                 new_df = pd.DataFrame(list(new_models), columns=["cpu_model"])
-                new_df.to_sql(
+                concat_df = pd.concat([existing_df, new_df])
+                concat_df.to_sql(
                     "cpu_model_names",
                     conn,
-                    if_exists="append",
+                    if_exists="replace",
                     index=False,
                 )
                 print(f"Added {len(new_models)} new CPU models to database")
+                print(new_models)
             else:
                 print("No new CPU models to add")
 
