@@ -56,6 +56,29 @@ def get_last_updated_dates_of_cpu_model_df() -> pd.DataFrame:
         return pd.read_sql(sql, conn)
 
 
+def get_sorted_detail_url_list() -> list[str]:
+    # The `where row_number = 1` will be removed after there exists at least on record for each CPU model
+    sql = """
+        select url
+        from (
+            select
+                cpu_model,
+                url,
+                ROW_NUMBER() OVER (PARTITION BY cpu_model ORDER BY url ASC) AS row_number
+            from cpu_model_results
+        ) AS ranked
+        where row_number = 1
+    """
+    with get_postgresql_conn(
+        database=GEEKBENCH_REPORT_POSTGRESDB_DATABASE,
+        user=GEEKBENCH_REPORT_POSTGRESDB_USER,
+        password=GEEKBENCH_REPORT_POSTGRESDB_PASSWORD,
+        host=GEEKBENCH_REPORT_POSTGRESDB_HOST,
+        port=GEEKBENCH_REPORT_POSTGRESDB_PORT,
+    ) as conn:
+        return pd.read_sql(sql, conn)["url"].to_list()
+
+
 def load_df_to_pg(
     df: pd.DataFrame,
     table_name: str,
