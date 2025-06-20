@@ -1,9 +1,11 @@
+import json
 from dataclasses import dataclass
 
+import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 
-BASE_URL = "https://browser.geekbench.com/v6/cpu/{cpu_id}"
+BASE_URL = "https://browser.geekbench.com/v6/cpu/{cpu_result_id}"
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
 }
@@ -11,9 +13,12 @@ HEADERS = {
 
 @dataclass
 class GeekbenchProcessorDetail:
+    cpu_result_id: str
     title: str | None
     upload_date: str | None
     views: str | None
+    cpu_model: str | None
+    cpu_codename: str | None
     single_core_score: str | None
     multi_core_score: str | None
     system_info: dict[str, str]
@@ -24,11 +29,11 @@ class GeekbenchProcessorDetail:
 
 
 class GeekbenchProcessorDetailScraper:
-    def __init__(self, cpu_id: str) -> None:
-        self.cpu_id = cpu_id
+    def __init__(self, cpu_result_id: str) -> None:
+        self.cpu_result_id = cpu_result_id
 
     def _get_detail_url(self) -> str:
-        return BASE_URL.format(cpu_id=self.cpu_id)
+        return BASE_URL.format(cpu_result_id=self.cpu_result_id)
 
     def _parse_table(self, soup, index: int) -> dict[str, str]:
         """Extract a key-value table based on class 'system-table' by index."""
@@ -80,6 +85,9 @@ class GeekbenchProcessorDetailScraper:
         cpu_info = self._parse_table(soup, 2)
         memory_info = self._parse_table(soup, 3)
 
+        cpu_codename = cpu_info.get("Codename")
+        cpu_model = cpu_info.get("Name")
+
         # Benchmarks
         benchmark_tables = soup.select("table.benchmark-table")
         single_core_benchmarks = (
@@ -94,9 +102,12 @@ class GeekbenchProcessorDetailScraper:
         )
 
         return GeekbenchProcessorDetail(
+            cpu_result_id=self.cpu_result_id,
             title=title,
             upload_date=upload_date,
             views=views,
+            cpu_model=cpu_model,
+            cpu_codename=cpu_codename,
             single_core_score=single_core_score,
             multi_core_score=multi_core_score,
             system_info=system_info,
@@ -104,6 +115,28 @@ class GeekbenchProcessorDetailScraper:
             memory_info=memory_info,
             single_core_benchmarks=single_core_benchmarks,
             multi_core_benchmarks=multi_core_benchmarks,
+        )
+
+    @staticmethod
+    def detail_to_dataframe(detail: GeekbenchProcessorDetail) -> pd.DataFrame:
+        return pd.DataFrame(
+            [
+                {
+                    "cpu_result_id": detail.cpu_result_id,
+                    "title": detail.title,
+                    "upload_date": pd.to_datetime(detail.upload_date, errors="coerce"),
+                    "views": int(detail.views),
+                    "cpu_model": detail.cpu_model,
+                    "cpu_codename": detail.cpu_codename,
+                    "single_core_score": int(detail.single_core_score),
+                    "multi_core_score": int(detail.multi_core_score),
+                    "system_info": json.dumps(detail.system_info),
+                    "cpu_info": json.dumps(detail.cpu_info),
+                    "memory_info": json.dumps(detail.memory_info),
+                    "single_core_benchmarks": json.dumps(detail.single_core_benchmarks),
+                    "multi_core_benchmarks": json.dumps(detail.multi_core_benchmarks),
+                }
+            ]
         )
 
 
@@ -114,3 +147,9 @@ if __name__ == "__main__":
     scraper = GeekbenchProcessorDetailScraper("12479005")
     result = scraper.scrape_detail_page()
     pprint(result)  # To convert to JSON-serializable dictionary
+
+    # load_df_to_pg(
+    #     df=GeekbenchProcessorDetailScraper.detail_to_dataframe(result),
+    #     table_name="cpu_model_details",
+    #     if_exists="append",
+    # )
