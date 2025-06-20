@@ -37,21 +37,45 @@ class GeekbenchProcessorResultScraper:
     def _get_params(self, page: int) -> dict[str, str]:
         return {"q": self.cpu_name, "page": str(page)}
 
+    def _get_cpu_info(
+        self, cpu_info_text: str
+    ) -> tuple[str | None, str | None, int | None]:
+        """
+        Extract cpu_model, cpu_freq, and cpu_cores from raw <span> content.
+        Example: entry.select_one("span.list-col-model")
+
+        Handles patterns like:
+        - AMD Athlon 200GE\n3200 MHz\n(2 cores)
+        - Intel Xeon E5-2618L v3\n\n2294 MHz\n(8 cores)
+        """
+        lines = [line.strip() for line in cpu_info_text.splitlines() if line.strip()]
+
+        cpu_model = lines[0] if len(lines) > 0 else None
+        cpu_freq = lines[1] if len(lines) > 1 else None
+        cpu_cores = None
+        if len(lines) > 2 and "core" in lines[2]:
+            try:
+                cpu_cores = int(
+                    lines[2]
+                    .replace("(", "")
+                    .replace("cores", "")
+                    .replace("core", "")
+                    .replace(")", "")
+                    .strip()
+                )
+            except ValueError:
+                pass
+
+        return cpu_model, cpu_freq, cpu_cores
+
     def _parse_entry(self, entry) -> GeekbenchProcessorResult:
         system_a = entry.select_one("a[href^='/v6/cpu/']")
         system = system_a.text.strip() if system_a else None
         cpuid_url = system_a["href"] if system_a and system_a.has_attr("href") else None
         url = f"https://browser.geekbench.com{cpuid_url}" if cpuid_url else None
 
-        cpu_info = entry.select_one("span.list-col-model")
-        cpu_lines = cpu_info.text.strip().split("\n") if cpu_info else []
-        cpu_model = cpu_lines[0].strip() if len(cpu_lines) > 0 else None
-        cpu_freq = cpu_lines[1].strip() if len(cpu_lines) > 1 else None
-        cpu_cores = (
-            int(cpu_lines[2].strip("() \n").replace("cores", "").strip())
-            if len(cpu_lines) > 2
-            else None
-        )
+        cpu_info_text = entry.select_one("span.list-col-model").text
+        cpu_model, cpu_freq, cpu_cores = self._get_cpu_info(cpu_info_text)
 
         uploaded_text = entry.select_one(
             "span.list-col-subtitle:-soup-contains('Uploaded') + span"
