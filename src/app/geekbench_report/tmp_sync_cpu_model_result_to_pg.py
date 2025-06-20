@@ -36,11 +36,11 @@ def sync_cpu_model_result_to_pg(init: bool = False) -> None:
         print(f"Processing {proc_name} [{idx}]")
 
         scraper = GeekbenchProcessorResultScraper(proc_name, max_pages=350)
-        total_pages = scraper.get_total_pages()
+        total_pages = scraper.get_max_pages()
 
         print(f"Total pages available: {total_pages}")
 
-        df = scraper.scrape_multiple_pages()
+        df = scraper.scrape_multiple_pages_until_max_page()
         # df.to_csv(f"{proc_name.replace(' ', '_')}.csv", index=False)
         # Load df to Postgres
         load_df_to_pg(df=df, table_name="cpu_model_results", if_exists="append")
