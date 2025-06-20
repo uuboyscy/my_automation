@@ -1,9 +1,9 @@
 from dataclasses import dataclass
+from datetime import datetime
 
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
-from pandas import Timestamp
 
 BASE_URL = "https://browser.geekbench.com/search"
 HEADERS = {
@@ -18,7 +18,7 @@ class GeekbenchProcessorResult:
     cpu_model: str | None
     frequency: str | None
     cores: int | None
-    uploaded: Timestamp | None
+    uploaded: datetime | None
     platform: str | None
     single_core_score: int | None
     multi_core_score: int | None
@@ -26,10 +26,28 @@ class GeekbenchProcessorResult:
 
 
 class GeekbenchProcessorResultScraper:
-    def __init__(self, cpu_name: str, max_pages: int | None = None) -> None:
+    def __init__(
+        self,
+        cpu_name: str,
+        max_pages: int | None = None,
+        offset_date: str | datetime | None = None,
+    ) -> None:
         self.cpu_name = cpu_name
         self._total_pages = None
         self.max_pages = max_pages
+
+        # CPU results are shown from latest to older.
+        # If `offset` is set, the crawler will stop when detected uploaded date > `offset`
+        # no matter what `max_pages` set.
+        if isinstance(offset_date, str):
+            try:
+                self.offset_date = pd.to_datetime(offset_date, errors="raise")
+            except ValueError:
+                raise ValueError(f"Invalid date string format: {offset_date}")
+        elif isinstance(offset_date, datetime):
+            self.offset_date = pd.to_datetime(offset_date)
+        else:
+            self.offset_date = None
 
     def _get_base_url(self) -> str:
         return BASE_URL
@@ -152,13 +170,14 @@ class GeekbenchProcessorResultScraper:
         except ValueError:
             self._total_pages = 1
 
+        return self._total_pages
+
+    def get_max_pages(self) -> int:
         if (self.max_pages is not None) and (self.max_pages > 0):
             print(
-                f"Total pages detected: {self._total_pages}; Limit = {self.max_pages}",
+                f"Total pages detected: {self.get_total_pages()}; Limit = {self.max_pages}",
             )
-            self._total_pages = min(self._total_pages, self.max_pages)
-
-        return self._total_pages
+            return min(self.get_total_pages(), self.max_pages)
 
     def scrape_page(self, page: int) -> list[GeekbenchProcessorResult]:
         """Scrape a single page of results."""
@@ -174,7 +193,9 @@ class GeekbenchProcessorResultScraper:
         return [self._parse_entry(entry) for entry in entries]
 
     def scrape_multiple_pages(
-        self, start_page: int = 1, end_page: int | None = None
+        self,
+        start_page: int = 1,
+        end_page: int | None = None,
     ) -> pd.DataFrame:
         """
         Scrape multiple pages of results.
@@ -198,6 +219,41 @@ class GeekbenchProcessorResultScraper:
         for page in range(start_page, end_page + 1):
             results = self.scrape_page(page)
             all_results.extend(results)
+
+        return pd.DataFrame([vars(result) for result in all_results])
+
+    def scrape_multiple_pages_until_max_page(self) -> pd.DataFrame:
+        if self.max_pages is None:
+            return self.scrape_multiple_pages()
+
+        return self.scrape_multiple_pages(start_page=1, end_page=self.get_max_pages())
+
+    def scrape_multiple_pages_until_offset_date(self) -> pd.DataFrame:
+        """
+        Scrape pages until reaching records older than self.offset_date.
+        Removes results with uploaded < offset_date and stops if such filtering occurs.
+        """
+        if self.offset_date is None:
+            return self.scrape_multiple_pages()
+
+        start_page = 1
+        end_page = self.get_total_pages()
+        all_results = []
+
+        for page in range(start_page, end_page + 1):
+            results = self.scrape_page(page)
+
+            # Separate valid vs too-old results
+            filtered_results = [
+                r for r in results if not r.uploaded or r.uploaded >= self.offset_date
+            ]
+
+            # If any results were filtered out due to being too old, break
+            if len(filtered_results) < len(results):
+                all_results.extend(filtered_results)
+                break
+
+            all_results.extend(filtered_results)
 
         return pd.DataFrame([vars(result) for result in all_results])
 
@@ -231,3 +287,8 @@ if __name__ == "__main__":
         print(f"Total results found: {len(df)}")
         print(f"{time.time() - start_time} seconds took.")
         print("==========")
+
+    proc_name = "AMD Ryzen 9 9950X3D"
+    scraper = GeekbenchProcessorResultScraper(proc_name, offset_date="2025-06-16")
+    df = scraper.scrape_multiple_pages_until_offset_date()
+    df.to_csv(f"{proc_name.replace(' ', '_')}.csv", index=False)
