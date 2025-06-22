@@ -49,6 +49,7 @@ from utils.common.database_utility import get_postgresql_conn
 from utils.geekbench_report.core.geekbench_processor_name_scraper import (
     GeekbenchProcessorNameScraper,
 )
+from utils.geekbench_report.database_helper import load_df_to_pg
 
 load_dotenv()
 
@@ -101,12 +102,10 @@ def sync_cpu_model_names_to_pg(init: bool = False) -> None:
             new_models = set(df["cpu_model"]) - existing_models
             if new_models:
                 new_df = pd.DataFrame(list(new_models), columns=["cpu_model"])
-                concat_df = pd.concat([existing_df, new_df])
-                concat_df.to_sql(
-                    "cpu_model_names",
-                    conn,
-                    if_exists="replace",
-                    index=False,
+                load_df_to_pg(
+                    df=new_df,
+                    table_name="cpu_model_names",
+                    if_exists="append",
                 )
                 print(f"Added {len(new_models)} new CPU models to database")
                 print(new_models)
