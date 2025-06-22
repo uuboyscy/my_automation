@@ -13,7 +13,7 @@ HEADERS = {
 
 @dataclass
 class GeekbenchProcessorResult:
-    cpu_id: str | None
+    cpu_result_id: int | None
     system: str | None
     cpu_model: str | None
     frequency: str | None
@@ -22,7 +22,6 @@ class GeekbenchProcessorResult:
     platform: str | None
     single_core_score: int | None
     multi_core_score: int | None
-    url: str | None
 
 
 class GeekbenchProcessorResultScraper:
@@ -89,8 +88,12 @@ class GeekbenchProcessorResultScraper:
     def _parse_entry(self, entry) -> GeekbenchProcessorResult:
         system_a = entry.select_one("a[href^='/v6/cpu/']")
         system = system_a.text.strip() if system_a else None
-        cpuid_url = system_a["href"] if system_a and system_a.has_attr("href") else None
-        url = f"https://browser.geekbench.com{cpuid_url}" if cpuid_url else None
+        cpu_result_id_url = (
+            system_a["href"] if system_a and system_a.has_attr("href") else None
+        )
+        cpu_result_id = (
+            int(cpu_result_id_url.split("/")[-1]) if cpu_result_id_url else None
+        )
 
         cpu_info_text = entry.select_one("span.list-col-model").text
         cpu_model, cpu_freq, cpu_cores = self._get_cpu_info(cpu_info_text)
@@ -127,7 +130,7 @@ class GeekbenchProcessorResultScraper:
             multi_score = int(score_text) if score_text.isdigit() else None
 
         return GeekbenchProcessorResult(
-            cpu_id=url.split("/")[-1],
+            cpu_result_id=cpu_result_id,
             system=system,
             cpu_model=cpu_model,
             frequency=cpu_freq,
@@ -136,7 +139,6 @@ class GeekbenchProcessorResultScraper:
             platform=platform,
             single_core_score=single_score,
             multi_core_score=multi_score,
-            url=url,
         )
 
     def get_total_pages(self) -> int:

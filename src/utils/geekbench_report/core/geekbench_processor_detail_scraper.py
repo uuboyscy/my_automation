@@ -13,7 +13,7 @@ HEADERS = {
 
 @dataclass
 class GeekbenchProcessorDetail:
-    cpu_result_id: str
+    cpu_result_id: int
     title: str | None
     upload_date: str | None
     views: str | None
@@ -29,8 +29,14 @@ class GeekbenchProcessorDetail:
 
 
 class GeekbenchProcessorDetailScraper:
-    def __init__(self, cpu_result_id: str) -> None:
-        self.cpu_result_id = cpu_result_id
+    def __init__(self, cpu_result_id: str | int) -> None:
+        if isinstance(cpu_result_id, str):
+            try:
+                self.cpu_result_id = int(cpu_result_id)
+            except ValueError:
+                self.cpu_result_id = cpu_result_id
+        else:
+            self.cpu_result_id = cpu_result_id
 
     def _get_detail_url(self) -> str:
         return BASE_URL.format(cpu_result_id=self.cpu_result_id)
