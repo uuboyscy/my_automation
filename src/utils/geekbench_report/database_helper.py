@@ -31,6 +31,21 @@ def get_cpu_model_name_list_from_pg() -> list[str]:
         )["cpu_model"].to_list()
 
 
+def get_system_name_list_from_pg() -> list[str]:
+    with get_postgresql_conn(
+        database=GEEKBENCH_REPORT_POSTGRESDB_DATABASE,
+        user=GEEKBENCH_REPORT_POSTGRESDB_USER,
+        password=GEEKBENCH_REPORT_POSTGRESDB_PASSWORD,
+        host=GEEKBENCH_REPORT_POSTGRESDB_HOST,
+        port=GEEKBENCH_REPORT_POSTGRESDB_PORT,
+    ) as conn:
+        sql = "select system FROM system_names"
+        return pd.read_sql(
+            sql,
+            conn,
+        )["system"].to_list()
+
+
 def get_last_updated_dates_of_cpu_model_df() -> pd.DataFrame:
     sql = """
         select
