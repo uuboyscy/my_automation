@@ -18,11 +18,11 @@ def sync_cpu_model_result_to_pg() -> None:
 
     last_updated_dates_of_cpu_model_df = get_last_updated_dates_of_cpu_model_df()
 
-    for _, row in last_updated_dates_of_cpu_model_df.iterrows():
+    for idx, row in last_updated_dates_of_cpu_model_df.iterrows():
         cpu_model_name = row["cpu_model"]
         last_updated_date = row["last_uploaded"]
 
-        print(f"Processing {cpu_model_name}, from {last_updated_date}")
+        print(f"[{idx}] Processing {cpu_model_name}, from {last_updated_date}")
 
         start_time = time.time()
 
