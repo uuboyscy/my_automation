@@ -80,11 +80,19 @@ def get_system_map_from_pg() -> dict[str, int]:
 
 def get_last_updated_dates_of_cpu_model_df() -> pd.DataFrame:
     sql = """
+        with last_uploaded_record as (
+            select
+                cpu_model_id
+                , max(uploaded) as last_uploaded
+            from cpu_model_results
+            group by cpu_model_id
+        )
         select
-            cpu_model
-            , max(uploaded) as last_uploaded
-        from cpu_model_results
-        group by cpu_model
+            d.cpu_model
+            , COALESCE(f.last_uploaded, CURRENT_DATE - INTERVAL '30 days') AS last_uploaded
+        from cpu_model_names d
+        left join last_uploaded_record f
+        on d.cpu_model_id = f.cpu_model_id
     """
     with get_postgresql_conn(
         database=GEEKBENCH_REPORT_POSTGRESDB_DATABASE,
