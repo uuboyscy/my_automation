@@ -46,6 +46,38 @@ def get_system_name_list_from_pg() -> list[str]:
         )["system"].to_list()
 
 
+def get_cpu_model_map_from_pg() -> dict[str, int]:
+    """
+    Return a dict with key as cpu_model and value as cpu_model_id.
+    """
+    with get_postgresql_conn(
+        database=GEEKBENCH_REPORT_POSTGRESDB_DATABASE,
+        user=GEEKBENCH_REPORT_POSTGRESDB_USER,
+        password=GEEKBENCH_REPORT_POSTGRESDB_PASSWORD,
+        host=GEEKBENCH_REPORT_POSTGRESDB_HOST,
+        port=GEEKBENCH_REPORT_POSTGRESDB_PORT,
+    ) as conn:
+        sql = "select cpu_model, cpu_model_id FROM cpu_model_names"
+        df = pd.read_sql(sql, conn)
+        return dict(zip(df["cpu_model"], df["cpu_model_id"]))
+
+
+def get_system_map_from_pg() -> dict[str, int]:
+    """
+    Return a dict with key as system and value as system_id.
+    """
+    with get_postgresql_conn(
+        database=GEEKBENCH_REPORT_POSTGRESDB_DATABASE,
+        user=GEEKBENCH_REPORT_POSTGRESDB_USER,
+        password=GEEKBENCH_REPORT_POSTGRESDB_PASSWORD,
+        host=GEEKBENCH_REPORT_POSTGRESDB_HOST,
+        port=GEEKBENCH_REPORT_POSTGRESDB_PORT,
+    ) as conn:
+        sql = "select system, system_id FROM system_names"
+        df = pd.read_sql(sql, conn)
+        return dict(zip(df["system"], df["system_id"]))
+
+
 def get_last_updated_dates_of_cpu_model_df() -> pd.DataFrame:
     sql = """
         select
