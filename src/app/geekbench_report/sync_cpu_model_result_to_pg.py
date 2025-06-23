@@ -17,6 +17,8 @@ from utils.geekbench_report.database_helper import (
 def sync_cpu_model_result_to_pg() -> None:
 
     last_updated_dates_of_cpu_model_df = get_last_updated_dates_of_cpu_model_df()
+    system_map = get_system_map_from_pg()
+    cpu_model_map = get_cpu_model_map_from_pg()
 
     for idx, row in last_updated_dates_of_cpu_model_df.iterrows():
         cpu_model_name = row["cpu_model"]
@@ -41,14 +43,17 @@ def sync_cpu_model_result_to_pg() -> None:
 
         df = scraper.scrape_multiple_pages_until_offset_date()
 
-        # update system_names if new system detected
-        update_system_names(df["system"])
-        # system -> system_id
-        df["system_id"] = df["system"].map(get_system_map_from_pg())
-        # update cpu_model_names if new cpu_model detected
-        update_cpu_model_names(df["cpu_model"])
-        # cpu_model -> cpu_model_id
-        df["cpu_model_id"] = df["cpu_model"].map(get_cpu_model_map_from_pg())
+        # update system_names and cpu_model_names if new one detected
+        if df[~(df["system"].isin(system_map))].shape[0] > 0:
+            update_system_names(df["system"].to_list())
+            system_map = get_system_map_from_pg()
+        if df[~(df["cpu_model"].isin(cpu_model_map))].shape[0] > 0:
+            update_cpu_model_names(df["cpu_model"].to_list())
+            cpu_model_map = get_cpu_model_map_from_pg()
+
+        # system -> system_id , cpu_model -> cpu_model_id
+        df["system_id"] = df["system"].map(system_map)
+        df["cpu_model_id"] = df["cpu_model"].map(cpu_model_map)
 
         print(df.drop(["system", "cpu_model"], axis=1))
         load_df_to_pg(
