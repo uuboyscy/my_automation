@@ -284,7 +284,10 @@ if __name__ == "__main__":
         print(f"Total pages available: {total_pages}")
 
         df = scraper.scrape_multiple_pages()
-        df.to_csv(f"{proc_name.replace(' ', '_')}.csv", index=False)
+        df.to_csv(
+            f"tmp/geekbench_report/test_output/{proc_name.replace(' ', '_')}.csv",
+            index=False,
+        )
 
         print(f"Total results found: {len(df)}")
         print(f"{time.time() - start_time} seconds took.")
@@ -294,3 +297,33 @@ if __name__ == "__main__":
     scraper = GeekbenchProcessorResultScraper(proc_name, offset_date="2025-06-16")
     df = scraper.scrape_multiple_pages_until_offset_date()
     df.to_csv(f"{proc_name.replace(' ', '_')}.csv", index=False)
+
+    #####
+    from utils.geekbench_report.database_helper import (
+        get_last_updated_dates_of_cpu_model_df,
+    )
+
+    last_updated_dates_of_cpu_model_df = get_last_updated_dates_of_cpu_model_df()
+    # print(last_updated_dates_of_cpu_model_df[0:1])
+    for idx, row in last_updated_dates_of_cpu_model_df.iterrows():
+        cpu_model_name = row["cpu_model"]
+        last_updated_date = row["last_uploaded"]
+        print(f"{cpu_model_name}, {last_updated_date}")
+        start_time = time.time()
+        # scraper = GeekbenchProcessorResultScraper(cpu_model_name, max_pages=30)
+        scraper = GeekbenchProcessorResultScraper(
+            cpu_model_name, offset_date=last_updated_date
+        )
+        total_pages = scraper.get_total_pages()
+
+        print(f"Total pages available: {total_pages}")
+
+        df = scraper.scrape_multiple_pages_until_offset_date()
+        df.to_csv(
+            f"tmp/geekbench_report/test_output/{cpu_model_name.replace(' ', '_')}__{last_updated_date}.csv",
+            index=False,
+        )
+
+        print(f"Total results found: {len(df)}")
+        print(f"{time.time() - start_time} seconds took.")
+        print("==========")
