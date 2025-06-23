@@ -48,41 +48,17 @@ CREATE TABLE cpu_model_names (
 ```
 """
 
-import pandas as pd
-
 from utils.geekbench_report.core.geekbench_processor_name_scraper import (
     GeekbenchProcessorNameScraper,
 )
-from utils.geekbench_report.database_helper import (
-    get_cpu_model_name_list_from_pg,
-    load_df_to_pg,
-)
+from utils.geekbench_report.database_helper import update_cpu_model_names
 
 
 def sync_cpu_model_names_to_pg() -> None:
     """Sync CPU model names to PostgreSQL database."""
     scraper = GeekbenchProcessorNameScraper()
     all_cpu_model_list = scraper.scrape_all_cpu_models()
-    df = pd.DataFrame(all_cpu_model_list, columns=["cpu_model"])
-    # df.to_csv("cpu_model_names.csv", index=False)
-
-    # Read existing CPU model names from database
-    existing_model_list = get_cpu_model_name_list_from_pg()
-    existing_model_set = set(existing_model_list)
-
-    # Find new CPU models that need to be added
-    new_models = set(df["cpu_model"]) - existing_model_set
-    if new_models:
-        new_df = pd.DataFrame(list(new_models), columns=["cpu_model"])
-        load_df_to_pg(
-            df=new_df,
-            table_name="cpu_model_names",
-            if_exists="append",
-        )
-        print(f"Added {len(new_models)} new CPU models to database")
-        print(new_models)
-    else:
-        print("No new CPU models to add")
+    update_cpu_model_names(all_cpu_model_list)
 
 
 if __name__ == "__main__":
