@@ -161,6 +161,7 @@ def get_last_updated_dates_of_cpu_model_df() -> pd.DataFrame:
         from cpu_model_names d
         left join last_uploaded_record f
         on d.cpu_model_id = f.cpu_model_id
+        where d.cpu_model <> 'ARM'
     """
     with get_postgresql_conn(
         database=GEEKBENCH_REPORT_POSTGRESDB_DATABASE,
