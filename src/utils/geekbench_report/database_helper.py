@@ -146,29 +146,6 @@ def update_system_names(check_update_list: list[str]) -> None:
         print("No new systems to add")
 
 
-def delete_cpu_model_result_record_from_date_to_now(
-    cpu_model: str,
-    from_date: str | datetime,
-) -> None:
-    from_date = pd.to_datetime(from_date)
-    delete_sql = f"""
-        delete from cpu_model_results
-        where cpu_model_id = (
-            select cpu_model_id from cpu_model_names where cpu_model = '{cpu_model}'
-        )
-        and uploaded >= '{from_date}'
-    """
-    with get_postgresql_conn(
-        database=GEEKBENCH_REPORT_POSTGRESDB_DATABASE,
-        user=GEEKBENCH_REPORT_POSTGRESDB_USER,
-        password=GEEKBENCH_REPORT_POSTGRESDB_PASSWORD,
-        host=GEEKBENCH_REPORT_POSTGRESDB_HOST,
-        port=GEEKBENCH_REPORT_POSTGRESDB_PORT,
-    ) as conn:
-        conn.execute(text(delete_sql))
-        conn.commit()
-
-
 def get_last_updated_dates_of_cpu_model_df() -> pd.DataFrame:
     sql = """
         with last_uploaded_record as (
@@ -216,3 +193,59 @@ def get_sorted_detail_url_list() -> list[str]:
         port=GEEKBENCH_REPORT_POSTGRESDB_PORT,
     ) as conn:
         return pd.read_sql(sql, conn)["url"].to_list()
+
+
+def delete_cpu_model_result_record_from_date_to_now(
+    cpu_model: str,
+    from_date: str | datetime,
+) -> None:
+    from_date = pd.to_datetime(from_date)
+    delete_sql = f"""
+        delete from cpu_model_results
+        where cpu_model_id = (
+            select cpu_model_id from cpu_model_names where cpu_model = '{cpu_model}'
+        )
+        and uploaded >= '{from_date}'
+    """
+    with get_postgresql_conn(
+        database=GEEKBENCH_REPORT_POSTGRESDB_DATABASE,
+        user=GEEKBENCH_REPORT_POSTGRESDB_USER,
+        password=GEEKBENCH_REPORT_POSTGRESDB_PASSWORD,
+        host=GEEKBENCH_REPORT_POSTGRESDB_HOST,
+        port=GEEKBENCH_REPORT_POSTGRESDB_PORT,
+    ) as conn:
+        print(
+            f"Deleting cpu_model='{cpu_model}'/uploaded>='{from_date}' from cpu_model_results..."
+        )
+        print(conn.execute(text(delete_sql)), "affected.")
+        conn.commit()
+
+
+def delete_duplicated_cpu_model_result_from_pg() -> None:
+    delete_sql = """
+        with ranked as (
+        select ctid,
+                ROW_NUMBER() OVER (
+                partition by cpu_result_id, system_id, cpu_model_id, frequency, cores,
+                                uploaded, platform, single_core_score, multi_core_score
+                order by ctid
+                ) as rn
+        from cpu_model_results
+        )
+        delete from cpu_model_results
+        where ctid in (
+        select ctid
+        from ranked
+        where rn > 1
+        )
+    """
+    with get_postgresql_conn(
+        database=GEEKBENCH_REPORT_POSTGRESDB_DATABASE,
+        user=GEEKBENCH_REPORT_POSTGRESDB_USER,
+        password=GEEKBENCH_REPORT_POSTGRESDB_PASSWORD,
+        host=GEEKBENCH_REPORT_POSTGRESDB_HOST,
+        port=GEEKBENCH_REPORT_POSTGRESDB_PORT,
+    ) as conn:
+        print("Deleting duplicated data from cpu_model_results...")
+        print(conn.execute(text(delete_sql)), "affected.")
+        conn.commit()
