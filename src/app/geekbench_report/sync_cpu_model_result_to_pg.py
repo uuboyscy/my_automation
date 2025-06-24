@@ -56,8 +56,6 @@ CREATE TABLE "public"."cpu_model_results" (
 ```
 """
 
-import time
-
 import pandas as pd
 
 from utils.geekbench_report.core.geekbench_processor_result_scraper import (
@@ -85,17 +83,19 @@ def sync_cpu_model_result_to_pg() -> None:
         cpu_model_name = row["cpu_model"]
         last_updated_date = row["last_uploaded"]
 
-        print(f"[{idx}] Processing {cpu_model_name}, from {last_updated_date}")
+        # print(f"[{idx}] Processing {cpu_model_name}, from {last_updated_date}")
+        with open("/tmp/sync_cpu_model_result_to_pg.log", "w") as f:
+            f.write(f"[{idx}] Processing {cpu_model_name}, from {last_updated_date}")
 
-        start_time = time.time()
+        # start_time = time.time()
 
         scraper = GeekbenchProcessorResultScraper(
             cpu_model_name,
             offset_date=last_updated_date,
         )
-        total_pages = scraper.get_total_pages()
+        # total_pages = scraper.get_total_pages()
 
-        print(f"Total pages available: {total_pages}")
+        # print(f"Total pages available: {total_pages}")
 
         df = scraper.scrape_multiple_pages_until_offset_date()
 
@@ -112,13 +112,13 @@ def sync_cpu_model_result_to_pg() -> None:
         df["cpu_model_id"] = df["cpu_model"].map(cpu_model_map)
 
         df_required_columns = df.drop(["system", "cpu_model"], axis=1)
-        print(df_required_columns)
+        # print(df_required_columns)
 
         all_df_list.append(df_required_columns)
 
-        print(f"Total results found: {len(df_required_columns)}")
-        print(f"{time.time() - start_time} seconds took.")
-        print("==========")
+        # print(f"Total results found: {len(df_required_columns)}")
+        # print(f"{time.time() - start_time} seconds took.")
+        # print("==========")
 
         # Flush
         if (idx + 1) % 250 == 0:
