@@ -56,6 +56,8 @@ CREATE TABLE "public"."cpu_model_results" (
 ```
 """
 
+import os
+
 import pandas as pd
 
 from utils.geekbench_report.core.geekbench_processor_result_scraper import (
@@ -71,15 +73,48 @@ from utils.geekbench_report.database_helper import (
     update_system_names,
 )
 
+OFFSET_FILE_PATH = "/tmp/sync_cpu_model_result_offset.txt"
+
+
+def write_offset(offset_idx: int) -> None:
+    """
+    Write the current offset index to a local file.
+    """
+    with open(OFFSET_FILE_PATH, "w") as f:
+        f.write(str(offset_idx))
+
+
+def get_offset() -> int:
+    """
+    Read the offset index from the local file. If the file does not exist, return 0.
+    """
+    if not os.path.exists(OFFSET_FILE_PATH):
+        return 0
+    with open(OFFSET_FILE_PATH, "r") as f:
+        try:
+            return int(f.read().strip())
+        except Exception:
+            return 0
+
+
+def delete_offset_file() -> None:
+    """
+    Delete the offset file if it exists.
+    """
+    if os.path.exists(OFFSET_FILE_PATH):
+        os.remove(OFFSET_FILE_PATH)
+
 
 def sync_cpu_model_result_to_pg() -> None:
+
+    offset_idx = get_offset()
 
     last_updated_dates_of_cpu_model_df = get_last_updated_dates_of_cpu_model_df()
     system_map = get_system_map_from_pg()
     cpu_model_map = get_cpu_model_map_from_pg()
 
     all_df_list = []
-    for idx, row in last_updated_dates_of_cpu_model_df.iterrows():
+    for idx, row in last_updated_dates_of_cpu_model_df.loc[offset_idx:].iterrows():
         cpu_model_name = row["cpu_model"]
         last_updated_date = row["last_uploaded"]
 
@@ -129,6 +164,7 @@ def sync_cpu_model_result_to_pg() -> None:
             )
             delete_duplicated_cpu_model_result_from_pg()
             all_df_list = []
+            write_offset(idx)
 
     # Final flush
     load_df_to_pg(
@@ -137,6 +173,8 @@ def sync_cpu_model_result_to_pg() -> None:
         if_exists="append",
     )
     delete_duplicated_cpu_model_result_from_pg()
+
+    delete_offset_file()
 
 
 if __name__ == "__main__":
