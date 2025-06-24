@@ -123,7 +123,7 @@ def sync_cpu_model_result_to_pg() -> None:
         # Flush
         if (idx + 1) % 250 == 0:
             load_df_to_pg(
-                df=pd.concat(all_df_list),
+                df=pd.concat(all_df_list).drop_duplicates(),
                 table_name="cpu_model_results",
                 if_exists="append",
             )
@@ -132,7 +132,7 @@ def sync_cpu_model_result_to_pg() -> None:
 
     # Final flush
     load_df_to_pg(
-        df=pd.concat(all_df_list),
+        df=pd.concat(all_df_list).drop_duplicates(),
         table_name="cpu_model_results",
         if_exists="append",
     )
