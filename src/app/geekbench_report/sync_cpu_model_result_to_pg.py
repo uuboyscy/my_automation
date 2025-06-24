@@ -120,6 +120,17 @@ def sync_cpu_model_result_to_pg() -> None:
         print(f"{time.time() - start_time} seconds took.")
         print("==========")
 
+        # Flush
+        if (idx + 1) % 250 == 0:
+            load_df_to_pg(
+                df=pd.concat(all_df_list),
+                table_name="cpu_model_results",
+                if_exists="append",
+            )
+            delete_duplicated_cpu_model_result_from_pg()
+            all_df_list = []
+
+    # Final flush
     load_df_to_pg(
         df=pd.concat(all_df_list),
         table_name="cpu_model_results",
