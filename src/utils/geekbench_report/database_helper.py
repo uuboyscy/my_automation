@@ -174,38 +174,8 @@ def get_last_updated_dates_of_cpu_model_df() -> pd.DataFrame:
         return pd.read_sql(sql, conn)
 
 
-def get_sorted_detail_cpu_result_id_list() -> list[str]:
-    # This function used only for getting cpu_codename as dimension from detail URL
-    sql = """
-        select cpu_result_id
-        from (
-            select
-                cpu_model_id,
-                cpu_result_id,
-                ROW_NUMBER() OVER (PARTITION BY cpu_model_id ORDER BY cpu_result_id ASC) AS row_number
-            from cpu_model_results
-        ) AS ranked
-        where row_number = 1
-        and cpu_model_id not in (
-                select
-                    dim.cpu_model_id
-                from cpu_model_details details
-                left join cpu_model_names dim
-                on details.cpu_model = dim.cpu_model
-                where dim.cpu_model_id is not null
-            )
-    """
-    with get_postgresql_conn(
-        database=GEEKBENCH_REPORT_POSTGRESDB_DATABASE,
-        user=GEEKBENCH_REPORT_POSTGRESDB_USER,
-        password=GEEKBENCH_REPORT_POSTGRESDB_PASSWORD,
-        host=GEEKBENCH_REPORT_POSTGRESDB_HOST,
-        port=GEEKBENCH_REPORT_POSTGRESDB_PORT,
-    ) as conn:
-        return pd.read_sql(sql, conn)["cpu_result_id"].to_list()
-
-
 def get_cpu_model_id_and_result_id_for_scraping_details_df() -> pd.DataFrame:
+    """This function used only for getting cpu_codename as dimension from detail URL."""
     sql = """
         with cpu_model_id_with_result_id as (
             select
