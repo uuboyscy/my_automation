@@ -91,11 +91,12 @@ def sync_cpu_model_detail_to_pg() -> None:
             geekbench_processor_detail_dict,
         )
 
-    load_df_to_pg(
-        df=pd.DataFrame(geekbench_processor_detail_with_model_id_list),
-        table_name="cpu_model_details",
-        if_exists="append",
-    )
+    if len(geekbench_processor_detail_with_model_id_list) > 0:
+        load_df_to_pg(
+            df=pd.DataFrame(geekbench_processor_detail_with_model_id_list),
+            table_name="cpu_model_details",
+            if_exists="append",
+        )
 
 
 if __name__ == "__main__":
