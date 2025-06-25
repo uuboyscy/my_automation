@@ -92,9 +92,7 @@ def dumps_columns(geekbench_processor_detail_dict: dict) -> dict:
 
 
 def sync_cpu_model_detail_to_pg() -> None:
-    cpu_model_result_id_df = (
-        get_cpu_model_id_and_result_id_for_scraping_details_df().loc[:10]
-    )
+    cpu_model_result_id_df = get_cpu_model_id_and_result_id_for_scraping_details_df()
     # print(cpu_model_result_id_df)
     print(len(cpu_model_result_id_df))
     print("=====")
