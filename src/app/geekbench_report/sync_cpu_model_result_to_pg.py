@@ -133,6 +133,8 @@ def sync_cpu_model_result_to_pg() -> None:
         # print(f"Total pages available: {total_pages}")
 
         df = scraper.scrape_multiple_pages_until_offset_date()
+        if len(df) == 0:
+            continue
 
         # update system_names and cpu_model_names if new one detected
         if df[~(df["system"].isin(system_map))].shape[0] > 0:
