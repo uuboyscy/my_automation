@@ -1,7 +1,5 @@
-import json
 from dataclasses import dataclass
 
-import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 
@@ -17,7 +15,6 @@ class GeekbenchProcessorDetail:
     title: str | None
     upload_date: str | None
     views: str | None
-    cpu_model: str | None
     cpu_codename: str | None
     single_core_score: str | None
     multi_core_score: str | None
@@ -92,7 +89,7 @@ class GeekbenchProcessorDetailScraper:
         memory_info = self._parse_table(soup, 3)
 
         cpu_codename = cpu_info.get("Codename")
-        cpu_model = cpu_info.get("Name")
+        # cpu_model = cpu_info.get("Name")
 
         # Benchmarks
         benchmark_tables = soup.select("table.benchmark-table")
@@ -112,7 +109,6 @@ class GeekbenchProcessorDetailScraper:
             title=title,
             upload_date=upload_date,
             views=views,
-            cpu_model=cpu_model,
             cpu_codename=cpu_codename,
             single_core_score=single_core_score,
             multi_core_score=multi_core_score,
@@ -121,28 +117,6 @@ class GeekbenchProcessorDetailScraper:
             memory_info=memory_info,
             single_core_benchmarks=single_core_benchmarks,
             multi_core_benchmarks=multi_core_benchmarks,
-        )
-
-    @staticmethod
-    def detail_to_dataframe(detail: GeekbenchProcessorDetail) -> pd.DataFrame:
-        return pd.DataFrame(
-            [
-                {
-                    "cpu_result_id": detail.cpu_result_id,
-                    "title": detail.title,
-                    "upload_date": pd.to_datetime(detail.upload_date, errors="coerce"),
-                    "views": int(detail.views),
-                    "cpu_model": detail.cpu_model,
-                    "cpu_codename": detail.cpu_codename,
-                    "single_core_score": int(detail.single_core_score),
-                    "multi_core_score": int(detail.multi_core_score),
-                    "system_info": json.dumps(detail.system_info),
-                    "cpu_info": json.dumps(detail.cpu_info),
-                    "memory_info": json.dumps(detail.memory_info),
-                    "single_core_benchmarks": json.dumps(detail.single_core_benchmarks),
-                    "multi_core_benchmarks": json.dumps(detail.multi_core_benchmarks),
-                }
-            ]
         )
 
 

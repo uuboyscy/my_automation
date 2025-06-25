@@ -38,33 +38,64 @@ GEEKBENCH_REPORT_POSTGRESDB_PASSWORD="$DB_POSTGRESDB_PASSWORD" \
 PYTHONPATH="$PYTHONPATH_SRC" \
 python "$SCRIPT_PATH"
 ```
+
+SQL for creating table `cpu_model_details`
+```
+CREATE TABLE "public"."cpu_model_details" (
+    "cpu_result_id" int4,
+    "title" text,
+    "upload_date" timestamp,
+    "views" int4,
+    "cpu_model_id" int4,
+    "cpu_codename" text,
+    "single_core_score" int4,
+    "multi_core_score" int4,
+    "system_info" jsonb,
+    "cpu_info" jsonb,
+    "memory_info" jsonb,
+    "single_core_benchmarks" jsonb,
+    "multi_core_benchmarks" jsonb
+)
+```
 """
+
+from dataclasses import asdict
+
+import pandas as pd
 
 from utils.geekbench_report.core.geekbench_processor_detail_scraper import (
     GeekbenchProcessorDetailScraper,
 )
 from utils.geekbench_report.database_helper import (
-    get_sorted_detail_cpu_result_id_list,
+    get_cpu_model_id_and_result_id_for_scraping_details_df,
     load_df_to_pg,
 )
 
 
 def sync_cpu_model_detail_to_pg() -> None:
-    cpu_model_result_id_list = get_sorted_detail_cpu_result_id_list()
-    print(cpu_model_result_id_list)
-    print(len(cpu_model_result_id_list))
+    cpu_model_result_id_df = get_cpu_model_id_and_result_id_for_scraping_details_df()
+    # print(cpu_model_result_id_df)
+    print(len(cpu_model_result_id_df))
+    print("=====")
 
-    for idx, cpu_model_result_id in enumerate(cpu_model_result_id_list):
-        print(cpu_model_result_id, idx)
-        scraper = GeekbenchProcessorDetailScraper(cpu_model_result_id)
+    geekbench_processor_detail_with_model_id_list = []
+    for idx, row in cpu_model_result_id_df.iterrows():
+        cpu_result_id = row["cpu_result_id"]
+        cpu_model_id = row["cpu_model_id"]
+        print(cpu_model_id, cpu_result_id, idx)
+        scraper = GeekbenchProcessorDetailScraper(cpu_result_id)
         result = scraper.scrape_detail_page()
-        # pprint(result)  # To convert to JSON-serializable dictionary
-
-        load_df_to_pg(
-            df=GeekbenchProcessorDetailScraper.detail_to_dataframe(result),
-            table_name="cpu_model_details",
-            if_exists="append",
+        geekbench_processor_detail_dict = asdict(result)
+        geekbench_processor_detail_dict["cpu_model_id"] = 0
+        geekbench_processor_detail_with_model_id_list.append(
+            geekbench_processor_detail_dict,
         )
+
+    load_df_to_pg(
+        df=pd.DataFrame(geekbench_processor_detail_with_model_id_list),
+        table_name="cpu_model_details",
+        if_exists="append",
+    )
 
 
 if __name__ == "__main__":
