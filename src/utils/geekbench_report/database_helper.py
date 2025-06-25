@@ -205,6 +205,33 @@ def get_sorted_detail_cpu_result_id_list() -> list[str]:
         return pd.read_sql(sql, conn)["cpu_result_id"].to_list()
 
 
+def get_cpu_model_id_and_result_id_for_scraping_details_df() -> pd.DataFrame:
+    sql = """
+        with cpu_model_id_with_result_id as (
+            select
+                cpu_model_id,
+                max(cpu_result_id) as cpu_result_id
+            from cpu_model_results
+            group by cpu_model_id
+        )
+        select
+            cpu_model_id,
+            cpu_result_id
+        from cpu_model_id_with_result_id
+        where cpu_model_id not in (
+            select cpu_model_id from cpu_model_details
+        )
+    """
+    with get_postgresql_conn(
+        database=GEEKBENCH_REPORT_POSTGRESDB_DATABASE,
+        user=GEEKBENCH_REPORT_POSTGRESDB_USER,
+        password=GEEKBENCH_REPORT_POSTGRESDB_PASSWORD,
+        host=GEEKBENCH_REPORT_POSTGRESDB_HOST,
+        port=GEEKBENCH_REPORT_POSTGRESDB_PORT,
+    ) as conn:
+        return pd.read_sql(sql, conn)
+
+
 def delete_cpu_model_result_record_from_date_to_now(
     cpu_model: str,
     from_date: str | datetime,
