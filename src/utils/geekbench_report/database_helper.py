@@ -174,18 +174,26 @@ def get_last_updated_dates_of_cpu_model_df() -> pd.DataFrame:
         return pd.read_sql(sql, conn)
 
 
-def get_sorted_detail_url_list() -> list[str]:
+def get_sorted_detail_cpu_result_id_list() -> list[str]:
     # The `where row_number = 1` will be removed after there exists at least on record for each CPU model
     sql = """
-        select url
+        select cpu_result_id
         from (
             select
-                cpu_model,
-                url,
-                ROW_NUMBER() OVER (PARTITION BY cpu_model ORDER BY url ASC) AS row_number
+                cpu_model_id,
+                cpu_result_id,
+                ROW_NUMBER() OVER (PARTITION BY cpu_model_id ORDER BY cpu_result_id ASC) AS row_number
             from cpu_model_results
         ) AS ranked
         where row_number = 1
+        and cpu_model_id not in (
+                select
+                    dim.cpu_model_id
+                from cpu_model_details details
+                left join cpu_model_names dim
+                on details.cpu_model = dim.cpu_model
+                where dim.cpu_model_id is not null
+            )
     """
     with get_postgresql_conn(
         database=GEEKBENCH_REPORT_POSTGRESDB_DATABASE,
@@ -194,7 +202,7 @@ def get_sorted_detail_url_list() -> list[str]:
         host=GEEKBENCH_REPORT_POSTGRESDB_HOST,
         port=GEEKBENCH_REPORT_POSTGRESDB_PORT,
     ) as conn:
-        return pd.read_sql(sql, conn)["url"].to_list()
+        return pd.read_sql(sql, conn)["cpu_result_id"].to_list()
 
 
 def delete_cpu_model_result_record_from_date_to_now(
