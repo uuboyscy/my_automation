@@ -175,7 +175,7 @@ def get_last_updated_dates_of_cpu_model_df() -> pd.DataFrame:
 
 
 def get_sorted_detail_cpu_result_id_list() -> list[str]:
-    # The `where row_number = 1` will be removed after there exists at least on record for each CPU model
+    # This function used only for getting cpu_codename as dimension from detail URL
     sql = """
         select cpu_result_id
         from (
