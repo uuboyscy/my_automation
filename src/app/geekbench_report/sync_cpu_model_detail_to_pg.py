@@ -59,6 +59,7 @@ CREATE TABLE "public"."cpu_model_details" (
 ```
 """
 
+import json
 from dataclasses import asdict
 
 import pandas as pd
@@ -72,8 +73,28 @@ from utils.geekbench_report.database_helper import (
 )
 
 
+def dumps_columns(geekbench_processor_detail_dict: dict) -> dict:
+    # Convert the following fields to JSON string for geekbench_processor_detail_dict
+    for field in [
+        "system_info",
+        "cpu_info",
+        "memory_info",
+        "single_core_benchmarks",
+        "multi_core_benchmarks",
+    ]:
+        if field in geekbench_processor_detail_dict:
+            geekbench_processor_detail_dict[field] = json.dumps(
+                geekbench_processor_detail_dict[field],
+                ensure_ascii=False,
+            )
+
+    return geekbench_processor_detail_dict
+
+
 def sync_cpu_model_detail_to_pg() -> None:
-    cpu_model_result_id_df = get_cpu_model_id_and_result_id_for_scraping_details_df()
+    cpu_model_result_id_df = (
+        get_cpu_model_id_and_result_id_for_scraping_details_df().loc[:10]
+    )
     # print(cpu_model_result_id_df)
     print(len(cpu_model_result_id_df))
     print("=====")
@@ -86,7 +107,11 @@ def sync_cpu_model_detail_to_pg() -> None:
         scraper = GeekbenchProcessorDetailScraper(cpu_result_id)
         result = scraper.scrape_detail_page()
         geekbench_processor_detail_dict = asdict(result)
-        geekbench_processor_detail_dict["cpu_model_id"] = 0
+
+        geekbench_processor_detail_dict = dumps_columns(geekbench_processor_detail_dict)
+
+        geekbench_processor_detail_dict["cpu_model_id"] = cpu_model_id
+
         geekbench_processor_detail_with_model_id_list.append(
             geekbench_processor_detail_dict,
         )
