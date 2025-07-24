@@ -7,17 +7,19 @@
         100
     ],
     "[python]": {
-        "editor.defaultFormatter": "ms-python.black-formatter",
         "editor.formatOnSave": true,
-        "editor.formatOnType": true
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit",
+            "source.fixAll": "explicit",
+            "source.unusedImports": "never",
+            "source.fixall.pylance": "explicit",
+            "isort.serverEnabled": "never",
+        }
     },
-    "editor.codeActionsOnSave": {
-        "source.fixAll": "explicit",
-        "source.unusedImports": "never",
-        "source.fixall.pylance": "explicit",
-        "source.organizeImports": "explicit",
-        "isort.serverEnabled": "always"
-    },
+    "isort.args": [
+        "--profile", "black",
+        "--line-length", "100"
+    ],
     "python.analysis.typeCheckingMode": "off",
     "python.analysis.inlayHints.variableTypes": true,
     "python.analysis.autoFormatStrings": true,
