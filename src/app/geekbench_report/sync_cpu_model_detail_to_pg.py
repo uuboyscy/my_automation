@@ -46,7 +46,7 @@ CREATE TABLE "public"."cpu_model_details" (
     "title" text,
     "upload_date" timestamp,
     "views" int4,
-    "cpu_model_id" int4,
+    "cpu_model_id" int4,  -- From `geekbench_report.cpu_model_results`
     "cpu_codename" text,
     "single_core_score" int4,
     "multi_core_score" int4,
