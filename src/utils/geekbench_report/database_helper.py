@@ -175,7 +175,11 @@ def get_last_updated_dates_of_cpu_model_df() -> pd.DataFrame:
 
 
 def get_cpu_model_id_and_result_id_for_scraping_details_df() -> pd.DataFrame:
-    """This function used only for getting cpu_codename as dimension from detail URL."""
+    """
+    This function used only for getting cpu_codename as dimension from detail URL.
+    So it will not scrape for all result_id.
+    Only one random result_id of a cpu_model_id will be scraped.
+    """
     sql = """
         with cpu_model_id_with_result_id as (
             select
