@@ -79,3 +79,59 @@ CREATE TABLE cpu_model_details (
 - **cpu_model_benchmarks** records overall benchmark scores for each model; it links to `cpu_model_names` via the text `cpu_model`.
 - **cpu_model_results** is the fact table with individual test runs, referencing both a CPU model and system.
 - **cpu_model_details** stores extended metadata for selected results. Each detail row corresponds to one entry in `cpu_model_results`.
+
+## ER diagram
+
+```mermaid
+erDiagram
+    cpu_model_names {
+        INT cpu_model_id PK
+        TEXT cpu_model
+    }
+
+    system_names {
+        INT system_id PK
+        TEXT system
+    }
+
+    cpu_model_benchmarks {
+        TEXT cpu_model FK
+        TEXT frequency
+        INT cores
+        INT single_core_score
+        INT multi_core_score
+    }
+
+    cpu_model_results {
+        INT cpu_result_id PK
+        TEXT frequency
+        SMALLINT cores
+        TIMESTAMP uploaded
+        TEXT platform
+        INT single_core_score
+        INT multi_core_score
+        INT cpu_model_id FK
+        INT system_id FK
+    }
+
+    cpu_model_details {
+        INT cpu_result_id PK
+        TEXT title
+        TIMESTAMP upload_date
+        INT views
+        INT cpu_model_id FK
+        TEXT cpu_codename
+        INT single_core_score
+        INT multi_core_score
+        JSONB system_info
+        JSONB cpu_info
+        JSONB memory_info
+        JSONB single_core_benchmarks
+        JSONB multi_core_benchmarks
+    }
+
+    cpu_model_names ||--o{ cpu_model_benchmarks : contains
+    cpu_model_names ||--o{ cpu_model_results : contains
+    system_names ||--o{ cpu_model_results : hosts
+    cpu_model_results ||--|| cpu_model_details : has
+```
