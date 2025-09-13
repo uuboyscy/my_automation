@@ -17,6 +17,7 @@ pendulum = "^3.0.0"
 python-dotenv = "^1.1.0"
 sqlalchemy = "^2.0.41"
 psycopg2-binary = "^2.9.10"
+pyarrow = "^21.0.0"
 
 
 [tool.poetry.group.dev.dependencies]
