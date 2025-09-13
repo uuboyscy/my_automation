@@ -1,8 +1,7 @@
 # Geekbench Report
 
 This subproject scrapes CPU performance data from [Geekbench Browser](https://browser.geekbench.com/) and loads the
-results into a PostgreSQL database.  It is designed as a simple data pipeline
-exercise and can be used in a data engineering course.
+results into a PostgreSQL database.
 
 ## Directory overview
 
