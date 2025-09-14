@@ -69,6 +69,3 @@ Each step writes a pandas DataFrame directly into PostgreSQL via SQLAlchemy.
 
 For an overview of the tables created by these scripts see
 [SCHEMA.md](SCHEMA.md).
-
-Teaching suggestions and additional learning notes are provided in
-[EDUCATION.md](EDUCATION.md).
