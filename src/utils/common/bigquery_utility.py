@@ -1,28 +1,10 @@
 """Tasks for BigQuery."""
 
-from enum import Enum
 from typing import Literal
 
 import pandas as pd
 from google.cloud.bigquery import Client as BigQueryClient
 from google.cloud.bigquery import LoadJobConfig
-
-
-class WriteDispositionEnum(Enum):
-    """
-    Enum of parameter write_disposition for loading DataFrame to BigQuery.
-
-    If table does not exist:
-        WRITE_APPEND: Append data.
-        WRITE_TRUNCATE: Truncate and then append data.
-        WRITE_EMPTY: Append data only when table is empty, or raise Exception.
-    If table already exists:
-        All mode above create table.
-    """
-
-    WRITE_APPEND = "WRITE_APPEND"
-    WRITE_TRUNCATE = "WRITE_TRUNCATE"
-    WRITE_EMPTY = "WRITE_EMPTY"
 
 
 def _guarantee_single_type(df: pd.DataFrame) -> pd.DataFrame:
@@ -48,7 +30,17 @@ def load_dataframe_to_bigquery(
     write_disposition: Literal["WRITE_APPEND", "WRITE_TRUNCATE", "WRITE_EMPTY"],
     trans_to_singe_type: bool = True,
 ) -> None:
-    """Load DataFrame to BigQuery."""
+    """
+    Load DataFrame to BigQuery.
+
+    For argument `write_disposition`:
+        If table does not exist:
+            WRITE_APPEND: Append data.
+            WRITE_TRUNCATE: Truncate and then append data.
+            WRITE_EMPTY: Append data only when table is empty, or raise Exception.
+        If table already exists:
+            All mode above create table.
+    """
     if trans_to_singe_type:
         dataframe = _guarantee_single_type(dataframe)
 
