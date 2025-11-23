@@ -19,6 +19,7 @@ sqlalchemy = "^2.0.41"
 psycopg2-binary = "^2.9.10"
 pyarrow = "^21.0.0"
 google-cloud-bigquery = "^3.37.0"
+pygsheets = "^2.0.6"
 
 
 [tool.poetry.group.dev.dependencies]
