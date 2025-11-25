@@ -7,6 +7,9 @@ from dotenv import load_dotenv
 from sqlalchemy import text
 
 from utils.common.database_utility import get_postgresql_conn
+from utils.geekbench_report.sql.mart_average_score_and_benchmark_score import (
+    sql as score_report_sql,
+)
 
 load_dotenv()
 
@@ -174,6 +177,20 @@ def get_last_updated_dates_of_cpu_model_df() -> pd.DataFrame:
         return pd.read_sql(sql, conn)
 
 
+def get_score_report_from_df() -> pd.DataFrame:
+    with get_postgresql_conn(
+        database=GEEKBENCH_REPORT_POSTGRESDB_DATABASE,
+        user=GEEKBENCH_REPORT_POSTGRESDB_USER,
+        password=GEEKBENCH_REPORT_POSTGRESDB_PASSWORD,
+        host=GEEKBENCH_REPORT_POSTGRESDB_HOST,
+        port=GEEKBENCH_REPORT_POSTGRESDB_PORT,
+    ) as conn:
+        return pd.read_sql(
+            score_report_sql,
+            conn,
+        )
+
+
 def get_cpu_model_id_and_result_id_for_scraping_details_df() -> pd.DataFrame:
     """
     This function used only for getting cpu_codename as dimension from detail URL.
@@ -225,9 +242,7 @@ def delete_cpu_model_result_record_from_date_to_now(
         host=GEEKBENCH_REPORT_POSTGRESDB_HOST,
         port=GEEKBENCH_REPORT_POSTGRESDB_PORT,
     ) as conn:
-        print(
-            f"Deleting cpu_model='{cpu_model}'/uploaded>='{from_date}' from cpu_model_results..."
-        )
+        print(f"Deleting cpu_model='{cpu_model}'/uploaded>='{from_date}' from cpu_model_results...")
         print(conn.execute(text(delete_sql)), "affected.")
         conn.commit()
 
